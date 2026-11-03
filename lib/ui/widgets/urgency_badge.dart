@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 
 class UrgencyBadge extends StatelessWidget {
@@ -21,49 +22,55 @@ class UrgencyBadge extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final (Color bg, Color fg, String text, IconData icon) = switch (urgency) {
+    final (Color bg, Color fg, String text) = switch (urgency) {
       UrgencyLevel.critical => (
-          isDark ? const Color(0xFF4F1814) : const Color(0xFFFCE8E6),
+          isDark
+              ? AppTheme.urgencyCriticalBgDark
+              : AppTheme.urgencyCriticalBgLight,
           isDark ? AppTheme.criticalUrgencyDark : AppTheme.criticalUrgency,
-          'Urgência Crítica',
-          Icons.warning_amber_rounded,
+          'Crítica',
         ),
       UrgencyLevel.high => (
-          isDark ? const Color(0xFF452E12) : const Color(0xFFFEF0DB),
-          isDark ? const Color(0xFFFFCA7A) : const Color(0xFFA85D00),
-          'Urgência Alta',
-          Icons.priority_high_rounded,
+          isDark ? AppTheme.urgencyHighBgDark : AppTheme.urgencyHighBgLight,
+          isDark ? AppTheme.urgencyHighTextDark : AppTheme.urgencyHighTextLight,
+          'Alta',
         ),
       UrgencyLevel.normal => (
           isDark
               ? AppTheme.darkSurfaceContainer
               : AppTheme.lightSurfaceContainer,
           isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText,
-          'Urgência Normal',
-          Icons.info_outline_rounded,
+          'Normal',
         ),
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.pillRadius,
         border: urgency == UrgencyLevel.critical
-            ? Border.all(color: fg.withValues(alpha: 0.4))
+            ? Border.all(color: fg.withValues(alpha: 0.3), width: 1)
             : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: fg),
-          const SizedBox(width: 4),
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: fg,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
           Text(
             text,
             style: TextStyle(
               color: fg,
               fontSize: 11,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

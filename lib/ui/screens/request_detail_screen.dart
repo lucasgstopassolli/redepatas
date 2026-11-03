@@ -8,7 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
+import '../widgets/section_header.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/urgency_badge.dart';
 
@@ -38,217 +40,168 @@ class RequestDetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalhes do Pedido'),
+        title: const Text(
+          'Detalhes do Pedido',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
         actions: [
           IconButton(
             tooltip: 'Editar informações do pedido',
-            icon: const Icon(Icons.edit_outlined),
+            icon: const Icon(Icons.edit_outlined, size: 20),
             onPressed: () => _showEditRequestModal(context, request),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xl,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Foto ampliada no topo ou ilustração grande do animal
+            // Foto ou ilustração minimalista da espécie
             _DetailHeaderPhoto(request: request),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
 
             // Badges de Status Atual e Nível de Urgência
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 StatusBadge(status: request.status),
                 UrgencyBadge(urgency: request.urgency, showNormal: true),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: AppSpacing.sm),
 
             // Título do animal + Data/Hora da publicação
             Text(
               request.title,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
+                fontSize: 22,
+                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
-              'Espécie: ${request.species.label} • Publicado em $formattedDate',
-              style: TextStyle(color: secondaryTextColor, fontSize: 13.5),
+              '${request.species.label} • Publicado em $formattedDate',
+              style: TextStyle(color: secondaryTextColor, fontSize: 13),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: AppSpacing.md),
 
-            // Chips de todas as necessidades marcadas
-            Text(
-              'Necessidades identificadas',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 8),
+            // Chips de necessidades
+            const SectionHeader(title: 'Necessidades'),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
               children: request.needs.map((need) {
                 return Chip(
-                  avatar: Text(need.emoji),
-                  label: Text(
-                    need.label,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                  avatar: Icon(need.icon, size: 16),
+                  label: Text(need.label),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: AppSpacing.lg),
 
-            // Card de Localização
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on_rounded,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Localização do Animal',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 20),
-                    _InfoRow(
-                      label: 'Cidade / Bairro:',
-                      value: '${request.city} — Bairro ${request.neighborhood}',
-                    ),
-                    const SizedBox(height: 8),
-                    _InfoRow(
-                      label: 'Ponto de referência:',
-                      value: request.referencePoint.isEmpty
-                          ? 'Não informado'
-                          : request.referencePoint,
-                    ),
-                  ],
+            // Superfície unificada com divisores finos
+            Container(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: AppRadius.controlRadius,
+                border: Border.all(
+                  color: theme.colorScheme.outline,
+                  width: 1,
                 ),
               ),
-            ),
-            const SizedBox(height: 14),
-
-            // Descrição completa escrita pelo morador
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Localização
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.description_outlined,
-                          color: theme.colorScheme.primary,
+                        const SectionHeader(title: 'Localização'),
+                        _InfoRow(
+                          label: 'Cidade e Bairro',
+                          value: '${request.city} — Bairro ${request.neighborhood}',
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(height: AppSpacing.sm),
+                        _InfoRow(
+                          label: 'Ponto de referência',
+                          value: request.referencePoint.isEmpty
+                              ? 'Não informado'
+                              : request.referencePoint,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+
+                  // Descrição
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionHeader(title: 'Descrição da situação'),
                         Text(
-                          'Descrição da Situação',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                          request.description,
+                          style: TextStyle(
+                            fontSize: 14.5,
+                            height: 1.45,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
-                    const Divider(height: 20),
-                    Text(
-                      request.description,
-                      style: const TextStyle(fontSize: 15, height: 1.45),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
+                  ),
+                  const Divider(),
 
-            // Card de Acompanhamento / Quem publicou e Voluntário
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                  // Registro e Atendimento
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.people_outline_rounded,
-                          color: theme.colorScheme.primary,
+                        const SectionHeader(title: 'Registro e Atendimento'),
+                        _InfoRow(
+                          label: 'Publicado por',
+                          value: request.authorName,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Registro e Atendimento',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                        if (request.helperName != null) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          _InfoRow(
+                            label: request.status == RequestStatus.completed
+                                ? 'Atendido por'
+                                : 'Sendo atendido por',
+                            value: request.helperName!,
                           ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height: 20),
-                    _InfoRow(
-                      label: 'Publicado por:',
-                      value: request.authorName,
-                    ),
-                    if (request.helperName != null) ...[
-                      const SizedBox(height: 10),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.statusInProgressBgDark
-                              : AppTheme.statusInProgressBgLight,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          if (request.helperCommitment != null &&
+                              request.helperCommitment!.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xxs),
                             Text(
-                              request.status == RequestStatus.completed
-                                  ? 'Atendido por ${request.helperName}'
-                                  : 'Sendo atendido por ${request.helperName}',
+                              'Compromisso: ${request.helperCommitment}',
                               style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: isDark
-                                    ? AppTheme.statusInProgressTextDark
-                                    : AppTheme.statusInProgressText,
+                                fontSize: 13,
+                                color: secondaryTextColor,
                               ),
                             ),
-                            if (request.helperCommitment != null &&
-                                request.helperCommitment!.isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(
-                                'Apoio informado: "${request.helperCommitment}"',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: isDark
-                                      ? AppTheme.statusInProgressTextDark
-                                      : AppTheme.statusInProgressText,
-                                ),
-                              ),
-                            ],
                           ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -263,26 +216,29 @@ class RequestDetailScreen extends StatelessWidget {
     HelpRequestModel request,
   ) {
     final controller = context.read<HelpRequestController>();
+    final theme = Theme.of(context);
 
     return SafeArea(
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color,
+          color: theme.scaffoldBackgroundColor,
           border: Border(
             top: BorderSide(
-              color: Theme.of(context).dividerTheme.color ?? Colors.transparent,
+              color: theme.colorScheme.outline,
+              width: 1,
             ),
           ),
         ),
         child: switch (request.status) {
           RequestStatus.open => FilledButton.icon(
               onPressed: () => _showVolunteerModal(context, request),
-              icon: const Icon(Icons.volunteer_activism_rounded),
+              icon: const Icon(Icons.volunteer_activism_outlined, size: 18),
               label: const Text('Quero Ajudar este Animal'),
             ),
           RequestStatus.inProgress => Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (request.authorPhone != null &&
                     request.authorPhone!.trim().isNotEmpty) ...[
@@ -292,13 +248,13 @@ class RequestDetailScreen extends StatelessWidget {
                       foregroundColor: AppTheme.sageTertiary,
                       side: const BorderSide(
                         color: AppTheme.sageTertiary,
-                        width: 1.5,
+                        width: 1.2,
                       ),
                     ),
-                    icon: const Icon(Icons.chat_bubble_outline_rounded),
+                    icon: const Icon(Icons.chat_outlined, size: 18),
                     label: const Text('Falar no WhatsApp com quem publicou'),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: AppSpacing.xs),
                 ],
                 FilledButton.icon(
                   onPressed: () async {
@@ -320,7 +276,7 @@ class RequestDetailScreen extends StatelessWidget {
                     backgroundColor: AppTheme.sageTertiary,
                     foregroundColor: Colors.white,
                   ),
-                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  icon: const Icon(Icons.check_rounded, size: 18),
                   label: const Text('Marcar ajuda como Concluída'),
                 ),
               ],
@@ -329,8 +285,8 @@ class RequestDetailScreen extends StatelessWidget {
               children: [
                 const Expanded(
                   child: Text(
-                    'Este animal já recebeu o auxílio necessário.',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    'Este animal já recebeu auxílio.',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                   ),
                 ),
                 TextButton(
@@ -364,32 +320,37 @@ class RequestDetailScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (sheetContext, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+                left: AppSpacing.md,
+                right: AppSpacing.md,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.md,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
                     'Confirmar apoio ao animal',
                     style:
                         Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w600,
                             ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xxs),
                   Text(
-                    'Escolha o que você vai fornecer para "${request.title}" no bairro ${request.neighborhood}:',
+                    'Selecione o apoio que você fornecerá para "${request.title}":',
                     style: Theme.of(sheetContext).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   RadioGroup<String>(
                     groupValue: selectedCommitment,
                     onChanged: (val) {
@@ -402,14 +363,14 @@ class RequestDetailScreen extends StatelessWidget {
                         for (final option in options)
                           RadioListTile<String>(
                             value: option,
-                            title: Text(option),
+                            title: Text(option, style: const TextStyle(fontSize: 14)),
                             dense: true,
                             contentPadding: EdgeInsets.zero,
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.xs),
                   TextField(
                     controller: customController,
                     decoration: const InputDecoration(
@@ -417,8 +378,8 @@ class RequestDetailScreen extends StatelessWidget {
                       hintText: 'Ex: Chego no local por volta das 18h',
                     ),
                   ),
-                  const SizedBox(height: 18),
-                  FilledButton.icon(
+                  const SizedBox(height: AppSpacing.md),
+                  FilledButton(
                     onPressed: () async {
                       final auth = context.read<AuthController>();
                       final user = auth.currentUser;
@@ -449,8 +410,7 @@ class RequestDetailScreen extends StatelessWidget {
                         );
                       }
                     },
-                    icon: const Icon(Icons.favorite_rounded),
-                    label: const Text('Confirmar Compromisso'),
+                    child: const Text('Confirmar Compromisso'),
                   ),
                 ],
               ),
@@ -471,41 +431,46 @@ class RequestDetailScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (sheetContext, setModalState) {
             return Padding(
               padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+                left: AppSpacing.md,
+                right: AppSpacing.md,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.md,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
                     'Editar Pedido',
                     style:
                         Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w600,
                             ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: titleCtrl,
                     decoration: const InputDecoration(
                       labelText: 'Identificação do animal',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: refCtrl,
                     decoration: const InputDecoration(
                       labelText: 'Ponto de referência',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: descCtrl,
                     maxLines: 3,
@@ -513,9 +478,9 @@ class RequestDetailScreen extends StatelessWidget {
                       labelText: 'Descrição da situação',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   Wrap(
-                    spacing: 8,
+                    spacing: AppSpacing.xs,
                     children: UrgencyLevel.values.map((u) {
                       return ChoiceChip(
                         label: Text('Urgência: ${u.label}'),
@@ -526,7 +491,7 @@ class RequestDetailScreen extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: AppSpacing.md),
                   FilledButton(
                     onPressed: () async {
                       final updated = request.copyWith(
@@ -584,58 +549,180 @@ class _DetailHeaderPhoto extends StatelessWidget {
 
   const _DetailHeaderPhoto({required this.request});
 
+  bool _hasValidPhoto(String? path) {
+    if (path == null || path.trim().isEmpty) return false;
+    if (kIsWeb || path.startsWith('http') || path.startsWith('blob:')) {
+      return true;
+    }
+    return File(path).existsSync();
+  }
+
+  Widget _buildImage(String path, {required BoxFit fit}) {
+    if (kIsWeb || path.startsWith('http') || path.startsWith('blob:')) {
+      return Image.network(
+        path,
+        width: double.infinity,
+        fit: fit,
+      );
+    }
+    return Image.file(
+      File(path),
+      width: double.infinity,
+      fit: fit,
+    );
+  }
+
+  void _openFullScreenPhoto(BuildContext context, String path) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => _FullScreenPhotoViewer(
+          heroTag: 'request_photo_${request.id}',
+          title: request.title,
+          imageBuilder: (fit) => _buildImage(path, fit: fit),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryTextColor =
+        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
 
-    if (request.photoPath != null &&
-        request.photoPath!.trim().isNotEmpty &&
-        !kIsWeb) {
-      final file = File(request.photoPath!);
-      if (file.existsSync()) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Image.file(
-            file,
-            width: double.infinity,
-            height: 220,
-            fit: BoxFit.cover,
+    final path = request.photoPath;
+    if (path != null && _hasValidPhoto(path)) {
+      return Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.controlRadius,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _openFullScreenPhoto(context, path),
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 220,
+                child: Hero(
+                  tag: 'request_photo_${request.id}',
+                  child: _buildImage(path, fit: BoxFit.cover),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xs),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.65),
+                    borderRadius: AppRadius.pillRadius,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.open_in_full_rounded,
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Ver foto completa',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        );
-      }
+        ),
+      );
     }
-
-    final emoji = switch (request.species) {
-      AnimalSpecies.dog => '🐕',
-      AnimalSpecies.cat => '🐈',
-      AnimalSpecies.other => '🐾',
-    };
 
     return Container(
       width: double.infinity,
-      height: 180,
+      height: 140,
       decoration: BoxDecoration(
-        color: isDark
-            ? AppTheme.darkSurfaceContainer
-            : AppTheme.lightSurfaceContainer,
-        borderRadius: BorderRadius.circular(20),
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: AppRadius.controlRadius,
         border: Border.all(
-          color: isDark ? AppTheme.darkOutline : AppTheme.lightOutline,
+          color: theme.colorScheme.outline,
+          width: 1,
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 64)),
-          const SizedBox(height: 6),
+          Icon(
+            request.species.icon,
+            size: 36,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             request.species.label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: secondaryTextColor,
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FullScreenPhotoViewer extends StatelessWidget {
+  final String heroTag;
+  final String title;
+  final Widget Function(BoxFit fit) imageBuilder;
+
+  const _FullScreenPhotoViewer({
+    required this.heroTag,
+    required this.title,
+    required this.imageBuilder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        shape: const Border(),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: InteractiveViewer(
+            minScale: 1.0,
+            maxScale: 4.0,
+            child: Hero(
+              tag: heroTag,
+              child: imageBuilder(BoxFit.contain),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -659,17 +746,18 @@ class _InfoRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
             color: secondaryTextColor,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
+          style: TextStyle(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],

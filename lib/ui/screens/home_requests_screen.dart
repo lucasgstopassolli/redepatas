@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/help_request_controller.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/request_card.dart';
 import 'request_detail_screen.dart';
 
@@ -41,54 +43,41 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
             const Text(
               'RedePatas',
               style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
                 letterSpacing: -0.3,
               ),
             ),
             InkWell(
               onTap: () => _showCityFilterModal(context, controller),
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: AppRadius.controlRadius,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Icon(
+                    Icons.place_outlined,
+                    size: 13,
+                    color: secondaryTextColor,
+                  ),
+                  const SizedBox(width: 3),
                   Text(
-                    controller.selectedCityFilter == null
-                        ? '📍 Rio do Sul e região'
-                        : '📍 ${controller.selectedCityFilter}',
+                    controller.selectedCityFilter ?? 'Rio do Sul e região',
                     style: TextStyle(
-                      fontSize: 12.5,
-                      color: isDark
-                          ? AppTheme.darkSecondaryText
-                          : Colors.white.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      color: secondaryTextColor,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Icon(
-                    Icons.arrow_drop_down_rounded,
-                    size: 18,
-                    color: isDark
-                        ? AppTheme.darkSecondaryText
-                        : Colors.white.withValues(alpha: 0.9),
+                    Icons.expand_more_rounded,
+                    size: 16,
+                    color: secondaryTextColor,
                   ),
                 ],
               ),
             ),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.16),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.pets_rounded, size: 22),
-            ),
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: controller.loadRequests,
@@ -96,35 +85,24 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Como você quer ajudar?',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.4,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Pedidos de apoio da comunidade',
-                      style: TextStyle(
-                        color: secondaryTextColor,
-                        fontSize: 14.5,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
                     TextField(
                       controller: _searchController,
                       onChanged: controller.setSearchQuery,
                       decoration: InputDecoration(
                         hintText: 'Buscar por bairro, animal ou necessidade',
-                        prefixIcon: const Icon(Icons.search_rounded),
+                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
                         suffixIcon: controller.searchQuery.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear_rounded),
+                                icon: const Icon(Icons.clear_rounded, size: 18),
                                 onPressed: () {
                                   _searchController.clear();
                                   controller.setSearchQuery('');
@@ -133,15 +111,16 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                             : null,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.sm),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           for (final category in HomeFilterCategory.values)
                             Padding(
-                              padding: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.only(right: AppSpacing.xs),
                               child: FilterChip(
+                                avatar: Icon(category.icon, size: 16),
                                 label: Text(category.label),
                                 selected:
                                     controller.selectedCategory == category,
@@ -150,12 +129,21 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                               ),
                             ),
                           FilterChip(
-                            label: const Text('✓ Concluídos'),
+                            avatar: const Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('Concluídos'),
                             selected: controller.showCompletedInHome,
                             onSelected: controller.toggleShowCompletedInHome,
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '${requests.length} ${requests.length == 1 ? "pedido" : "pedidos"}',
+                      style: theme.textTheme.labelMedium,
                     ),
                   ],
                 ),
@@ -168,48 +156,32 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
             else if (requests.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.pets_outlined,
-                        size: 56,
-                        color: secondaryTextColor.withValues(alpha: 0.6),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Nenhum pedido encontrado com esses filtros.',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Tente limpar a busca ou registre um novo pedido de ajuda para um animal.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: secondaryTextColor),
-                      ),
-                      if (widget.onNewRequestTap != null) ...[
-                        const SizedBox(height: 18),
-                        OutlinedButton.icon(
+                child: EmptyState(
+                  icon: Icons.search_off_outlined,
+                  title: 'Nenhum pedido encontrado',
+                  description:
+                      'Tente ajustar a busca ou registre um novo pedido de apoio para um animal.',
+                  action: widget.onNewRequestTap != null
+                      ? OutlinedButton.icon(
                           onPressed: widget.onNewRequestTap,
-                          icon: const Icon(Icons.add_circle_outline_rounded),
+                          icon: const Icon(Icons.add, size: 18),
                           label: const Text('Solicitar ajuda para um animal'),
-                        ),
-                      ],
-                    ],
-                  ),
+                        )
+                      : null,
                 ),
               )
             else
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                  AppSpacing.md,
+                  AppSpacing.lg,
+                ),
                 sliver: SliverList.separated(
                   itemCount: requests.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.xs),
                   itemBuilder: (context, index) {
                     final req = requests[index];
                     return RequestCard(
@@ -241,6 +213,11 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return SafeArea(
           child: Column(
@@ -248,21 +225,25 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Text(
                   'Filtrar por cidade',
                   style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.xs),
               ListTile(
-                leading: const Icon(Icons.public_rounded),
-                title: const Text('Rio do Sul e toda a região (Todas)'),
+                leading: const Icon(Icons.public_outlined, size: 20),
+                title: const Text(
+                  'Rio do Sul e toda a região (Todas)',
+                  style: TextStyle(fontSize: 14),
+                ),
                 trailing: controller.selectedCityFilter == null
                     ? Icon(
-                        Icons.check_circle_rounded,
+                        Icons.check_rounded,
+                        size: 20,
                         color: Theme.of(sheetContext).colorScheme.primary,
                       )
                     : null,
@@ -273,11 +254,15 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
               ),
               for (final city in cities)
                 ListTile(
-                  leading: const Icon(Icons.location_city_rounded),
-                  title: Text(city),
+                  leading: const Icon(Icons.location_city_outlined, size: 20),
+                  title: Text(
+                    city,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   trailing: controller.selectedCityFilter == city
                       ? Icon(
-                          Icons.check_circle_rounded,
+                          Icons.check_rounded,
+                          size: 20,
                           color: Theme.of(sheetContext).colorScheme.primary,
                         )
                       : null,
@@ -286,7 +271,7 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                     Navigator.of(sheetContext).pop();
                   },
                 ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
             ],
           ),
         );

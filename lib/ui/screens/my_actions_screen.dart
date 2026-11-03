@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
+import '../widgets/empty_state.dart';
 import '../widgets/request_card.dart';
 import 'request_detail_screen.dart';
 
@@ -13,6 +15,11 @@ class MyActionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryTextColor =
+        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+
     final auth = context.watch<AuthController>();
     final controller = context.watch<HelpRequestController>();
     final userId = auth.currentUser?.id ?? 'user_demo';
@@ -26,13 +33,25 @@ class MyActionsScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text(
             'Minhas Ações',
-            style: TextStyle(fontWeight: FontWeight.w800),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
           ),
           bottom: TabBar(
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white.withValues(alpha: 0.72),
-            indicatorColor: Colors.white,
-            indicatorWeight: 3,
+            labelColor: theme.colorScheme.primary,
+            unselectedLabelColor: secondaryTextColor,
+            indicatorColor: theme.colorScheme.primary,
+            indicatorWeight: 2,
+            indicatorSize: TabBarIndicatorSize.tab,
+            labelStyle: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+            ),
             tabs: [
               Tab(
                 text: 'Estou ajudando (${helpingList.length})',
@@ -48,16 +67,16 @@ class MyActionsScreen extends StatelessWidget {
             _RequestsSubTabList(
               requests: helpingList,
               emptyIcon: Icons.volunteer_activism_outlined,
-              emptyTitle: 'Você ainda não assumiu nenhum pedido.',
+              emptyTitle: 'Nenhum pedido assumido',
               emptySubtitle:
-                  'No Mural (aba Início), toque em um pedido aberto e clique em "Quero Ajudar este Animal" para acompanhá-lo por aqui.',
+                  'No Mural de pedidos, abra um pedido aberto e confirme seu apoio para acompanhá-lo aqui.',
             ),
             _RequestsSubTabList(
               requests: createdList,
-              emptyIcon: Icons.post_add_rounded,
-              emptyTitle: 'Você ainda não cadastrou pedidos.',
+              emptyIcon: Icons.post_add_outlined,
+              emptyTitle: 'Nenhum pedido publicado',
               emptySubtitle:
-                  'Use a aba "Novo" na barra inferior sempre que encontrar um animal precisando de água, alimento ou abrigo.',
+                  'Use a aba "Novo" sempre que avistar um animal que necessite de alimento, água ou abrigo.',
             ),
           ],
         ),
@@ -81,46 +100,21 @@ class _RequestsSubTabList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
-
     if (requests.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                emptyIcon,
-                size: 56,
-                color: secondaryTextColor.withValues(alpha: 0.6),
-              ),
-              const SizedBox(height: 14),
-              Text(
-                emptyTitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                emptySubtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: secondaryTextColor, height: 1.4),
-              ),
-            ],
-          ),
-        ),
+      return EmptyState(
+        icon: emptyIcon,
+        title: emptyTitle,
+        description: emptySubtitle,
       );
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       itemCount: requests.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xs),
       itemBuilder: (context, index) {
         final req = requests[index];
         return RequestCard(

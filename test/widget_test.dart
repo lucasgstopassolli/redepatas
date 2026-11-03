@@ -10,6 +10,7 @@ import 'package:redepatas/main.dart';
 import 'package:redepatas/models/help_request_model.dart';
 import 'package:redepatas/repositories/i_help_request_repository.dart';
 import 'package:redepatas/repositories/sqlite_help_repository.dart';
+import 'package:redepatas/ui/screens/home_requests_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -117,7 +118,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verifica Mural Comunitário (Aba Início)
-    expect(find.text('Como você quer ajudar?'), findsOneWidget);
+    expect(find.byType(HomeRequestsScreen), findsOneWidget);
     expect(find.text('Cão caramelo'), findsOneWidget);
     expect(find.text('Gata cinza'), findsOneWidget);
 
@@ -182,9 +183,9 @@ void main() {
     expect(find.text('Tema do Aplicativo'), findsOneWidget);
 
     // Testa alternância do SegmentedButton<ThemeMode> (Claro / Escuro / Sistema)
-    await tester.tap(find.text('🌙 Escuro'));
+    await tester.tap(find.text('Escuro'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('☀️ Claro'));
+    await tester.tap(find.text('Claro'));
     await tester.pumpAndSettle();
   });
 

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 import 'status_badge.dart';
 import 'urgency_badge.dart';
@@ -29,29 +30,29 @@ class RequestCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _AnimalAvatarThumbnail(
                 species: request.species,
                 photoPath: request.photoPath,
-                size: 84,
+                size: 56,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
                           child: Text(
                             request.title,
                             style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15.5,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -63,23 +64,23 @@ class RequestCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 3),
                     Text(
                       request.needsSummary,
                       style: TextStyle(
                         color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13.5,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Icon(
-                          Icons.location_on_outlined,
-                          size: 15,
+                          Icons.place_outlined,
+                          size: 14,
                           color: secondaryTextColor,
                         ),
                         const SizedBox(width: 3),
@@ -88,7 +89,7 @@ class RequestCard extends StatelessWidget {
                             '${request.neighborhood} • ${request.city}',
                             style: TextStyle(
                               color: secondaryTextColor,
-                              fontSize: 13,
+                              fontSize: 12.5,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -96,10 +97,10 @@ class RequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
-                      runSpacing: 6,
+                      runSpacing: 4,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         StatusBadge(status: request.status, compact: true),
@@ -108,7 +109,7 @@ class RequestCard extends StatelessWidget {
                           Text(
                             'Por ${request.helperName}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 11.5,
                               color: secondaryTextColor,
                               fontStyle: FontStyle.italic,
                             ),
@@ -121,7 +122,8 @@ class RequestCard extends StatelessWidget {
               const SizedBox(width: 4),
               Icon(
                 Icons.chevron_right_rounded,
-                color: secondaryTextColor,
+                size: 18,
+                color: secondaryTextColor.withValues(alpha: 0.5),
               ),
             ],
           ),
@@ -144,13 +146,26 @@ class _AnimalAvatarThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
-    if (photoPath != null && photoPath!.trim().isNotEmpty && !kIsWeb) {
+    if (photoPath != null && photoPath!.trim().isNotEmpty) {
+      if (kIsWeb ||
+          photoPath!.startsWith('http') ||
+          photoPath!.startsWith('blob:')) {
+        return ClipRRect(
+          borderRadius: AppRadius.controlRadius,
+          child: Image.network(
+            photoPath!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
       final file = File(photoPath!);
       if (file.existsSync()) {
         return ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: AppRadius.controlRadius,
           child: Image.file(
             file,
             width: size,
@@ -161,69 +176,23 @@ class _AnimalAvatarThumbnail extends StatelessWidget {
       }
     }
 
-    final (Color bg, Color iconColor, IconData icon, String emoji) =
-        switch (species) {
-      AnimalSpecies.dog => (
-          isDark ? const Color(0xFF3E2C22) : const Color(0xFFF6E7D8),
-          isDark ? const Color(0xFFE5A467) : const Color(0xFFC86D32),
-          Icons.pets_rounded,
-          '🐕',
-        ),
-      AnimalSpecies.cat => (
-          isDark ? const Color(0xFF343138) : const Color(0xFFEBE8EE),
-          isDark ? const Color(0xFFC2B8CE) : const Color(0xFF6B5E78),
-          Icons.pets_rounded,
-          '🐈',
-        ),
-      AnimalSpecies.other => (
-          isDark ? const Color(0xFF2B362C) : const Color(0xFFE4EFE5),
-          isDark ? const Color(0xFF98C39B) : const Color(0xFF4A734D),
-          Icons.cruelty_free_rounded,
-          '🐾',
-        ),
-    };
-
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(14),
+        color: theme.colorScheme.surfaceContainer,
+        borderRadius: AppRadius.controlRadius,
         border: Border.all(
-          color: iconColor.withValues(alpha: 0.25),
+          color: theme.colorScheme.outline,
+          width: 1,
         ),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            right: -6,
-            bottom: -6,
-            child: Icon(
-              icon,
-              size: size * 0.55,
-              color: iconColor.withValues(alpha: 0.14),
-            ),
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                emoji,
-                style: TextStyle(fontSize: size * 0.38),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                species.label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: iconColor,
-                ),
-              ),
-            ],
-          ),
-        ],
+      child: Center(
+        child: Icon(
+          species.icon,
+          size: 24,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       ),
     );
   }

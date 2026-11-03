@@ -9,7 +9,9 @@ import '../../controllers/help_request_controller.dart';
 import '../../core/constants/rio_do_sul_bairros.dart';
 import '../../core/services/ibge_city_service.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
+import '../widgets/section_header.dart';
 
 class NewRequestScreen extends StatefulWidget {
   final VoidCallback? onRequestCreated;
@@ -74,11 +76,46 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
       appBar: AppBar(
         title: const Text(
           'Solicitar Ajuda',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            border: Border(
+              top: BorderSide(color: theme.colorScheme.outline, width: 1),
+            ),
+          ),
+          child: FilledButton(
+            onPressed: _isSubmitting ? null : _submitForm,
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Text('Publicar pedido'),
+          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 36),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.md,
+          AppSpacing.xl,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -86,35 +123,38 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
             children: [
               Text(
                 'Novo pedido de apoio',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xxs),
               Text(
-                'Registre informações claras para facilitar o atendimento pela comunidade.',
+                'Informe dados claros para orientar quem puder ajudar.',
                 style: TextStyle(color: secondaryTextColor, fontSize: 14),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               // 1. Espécie e Identificação
-              _SectionTitle('1. Espécie e Identificação do Animal'),
-              const SizedBox(height: 8),
+              const SectionHeader(title: 'Animal'),
               SizedBox(
                 width: double.infinity,
                 child: SegmentedButton<AnimalSpecies>(
+                  showSelectedIcon: false,
                   segments: const [
                     ButtonSegment(
                       value: AnimalSpecies.dog,
-                      label: Text('🐕 Cão'),
+                      icon: Icon(Icons.pets_outlined, size: 16),
+                      label: Text('Cão'),
                     ),
                     ButtonSegment(
                       value: AnimalSpecies.cat,
-                      label: Text('🐈 Gato'),
+                      icon: Icon(Icons.pets_outlined, size: 16),
+                      label: Text('Gato'),
                     ),
                     ButtonSegment(
                       value: AnimalSpecies.other,
-                      label: Text('🐾 Outro'),
+                      icon: Icon(Icons.cruelty_free_outlined, size: 16),
+                      label: Text('Outro'),
                     ),
                   ],
                   selected: {_selectedSpecies},
@@ -123,14 +163,13 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               TextFormField(
                 controller: _titleController,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: const InputDecoration(
                   labelText: 'Identificação do animal *',
                   hintText: 'Ex: Cão caramelo de porte médio, Gata cinza...',
-                  prefixIcon: Icon(Icons.pets_outlined),
                 ),
                 validator: (val) {
                   if (val == null || val.trim().isEmpty) {
@@ -139,18 +178,18 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               // 2. Tipo de necessidade (Múltipla escolha)
-              _SectionTitle('2. Tipo de necessidade (selecione uma ou mais)'),
-              const SizedBox(height: 8),
+              const SectionHeader(title: 'Necessidades'),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
                 children: NeedType.values.map((need) {
                   final isSelected = _selectedNeeds.contains(need);
                   return FilterChip(
-                    label: Text('${need.emoji} ${need.label}'),
+                    avatar: Icon(need.icon, size: 16),
+                    label: Text(need.label),
                     selected: isSelected,
                     onSelected: (selected) {
                       setState(() {
@@ -164,14 +203,13 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               // 3. Nível de Urgência
-              _SectionTitle('3. Nível de Urgência'),
-              const SizedBox(height: 8),
+              const SectionHeader(title: 'Urgência'),
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
                 children: [
                   ChoiceChip(
                     label: const Text('Normal'),
@@ -180,13 +218,13 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                         setState(() => _selectedUrgency = UrgencyLevel.normal),
                   ),
                   ChoiceChip(
-                    label: const Text('⚠️ Alta'),
+                    label: const Text('Alta'),
                     selected: _selectedUrgency == UrgencyLevel.high,
                     onSelected: (_) =>
                         setState(() => _selectedUrgency = UrgencyLevel.high),
                   ),
                   ChoiceChip(
-                    label: const Text('🚨 Crítica (Risco/Ferido)'),
+                    label: const Text('Crítica (Risco / Ferido)'),
                     selected: _selectedUrgency == UrgencyLevel.critical,
                     onSelected: (_) => setState(
                       () => _selectedUrgency = UrgencyLevel.critical,
@@ -194,117 +232,106 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               // 4. Localização (Rio do Sul + API IBGE)
-              _SectionTitle('4. Localização (Rio do Sul & Região - IBGE)'),
-              const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_city_rounded,
-                            color: theme.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Cidade selecionada',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: secondaryTextColor,
-                                  ),
-                                ),
-                                Text(
-                                  '$_selectedCity - SC',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
+              const SectionHeader(title: 'Localização'),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: AppRadius.controlRadius,
+                  border: Border.all(
+                    color: theme.colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text(
+                            '$_selectedCity - SC',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          TextButton.icon(
-                            onPressed: () => _openIbgeCityPicker(context),
-                            icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-                            label: const Text('Trocar cidade'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (_isRioDoSul)
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedRioDoSulBairro,
-                          decoration: const InputDecoration(
-                            labelText: 'Bairro em Rio do Sul *',
-                            prefixIcon: Icon(Icons.map_outlined),
-                          ),
-                          items: bairrosRioDoSul
-                              .map(
-                                (b) => DropdownMenuItem(
-                                  value: b,
-                                  child: Text(b),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedRioDoSulBairro = val);
-                            }
-                          },
-                        )
-                      else
-                        TextFormField(
-                          controller: _customNeighborhoodController,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: InputDecoration(
-                            labelText: 'Bairro em $_selectedCity *',
-                            hintText: 'Digite o nome do bairro ou localidade',
-                            prefixIcon: const Icon(Icons.map_outlined),
-                          ),
-                          validator: (val) {
-                            if (!_isRioDoSul &&
-                                (val == null || val.trim().isEmpty)) {
-                              return 'Informe o bairro';
-                            }
-                            return null;
-                          },
                         ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _referenceController,
-                        textCapitalization: TextCapitalization.sentences,
+                        TextButton(
+                          onPressed: () => _openIbgeCityPicker(context),
+                          child: const Text('Trocar cidade'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    if (_isRioDoSul)
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedRioDoSulBairro,
                         decoration: const InputDecoration(
-                          labelText: 'Ponto de referência *',
-                          hintText:
-                              'Ex: Próximo à passarela / Em frente à padaria...',
-                          prefixIcon: Icon(Icons.place_outlined),
+                          labelText: 'Bairro em Rio do Sul *',
+                        ),
+                        items: bairrosRioDoSul
+                            .map(
+                              (b) => DropdownMenuItem(
+                                value: b,
+                                child: Text(b),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedRioDoSulBairro = val);
+                          }
+                        },
+                      )
+                    else
+                      TextFormField(
+                        controller: _customNeighborhoodController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          labelText: 'Bairro em $_selectedCity *',
+                          hintText: 'Digite o nome do bairro ou localidade',
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Informe um ponto de referência para encontrar o animal';
+                          if (!_isRioDoSul &&
+                              (val == null || val.trim().isEmpty)) {
+                            return 'Informe o bairro';
                           }
                           return null;
                         },
                       ),
-                    ],
-                  ),
+                    const SizedBox(height: AppSpacing.sm),
+                    TextFormField(
+                      controller: _referenceController,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: const InputDecoration(
+                        labelText: 'Ponto de referência *',
+                        hintText:
+                            'Ex: Próximo à passarela / Em frente à padaria...',
+                      ),
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'Informe um ponto de referência para encontrar o animal';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
-              // 5. Descrição e Contato opcional
-              _SectionTitle('5. Descrição da Situação'),
-              const SizedBox(height: 8),
+              // 5. Descrição e Contato
+              const SectionHeader(title: 'Situação e Contato'),
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
@@ -322,63 +349,68 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.sm),
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Seu WhatsApp para contato (opcional)',
                   hintText: 'Ex: 47999112233',
-                  prefixIcon: Icon(Icons.phone_outlined),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
 
               // 6. Foto do animal (opcional)
-              _SectionTitle('6. Fotografia do Animal (opcional)'),
-              const SizedBox(height: 8),
+              const SectionHeader(title: 'Fotografia (opcional)'),
               InkWell(
                 onTap: () => _showPhotoSourceSheet(context),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: AppRadius.controlRadius,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: isDark
-                        ? AppTheme.darkSurfaceContainer
-                        : AppTheme.lightSurfaceContainer,
-                    borderRadius: BorderRadius.circular(16),
+                    color: theme.colorScheme.surfaceContainer,
+                    borderRadius: AppRadius.controlRadius,
                     border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.45),
-                      width: 1.5,
+                      color: theme.colorScheme.outline,
+                      width: 1,
                     ),
                   ),
-                  child: _photoPath != null && !kIsWeb
+                  child: _photoPath != null
                       ? Column(
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(_photoPath!),
-                                height: 160,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                              borderRadius: AppRadius.controlRadius,
+                              child: kIsWeb ||
+                                      _photoPath!.startsWith('http') ||
+                                      _photoPath!.startsWith('blob:')
+                                  ? Image.network(
+                                      _photoPath!,
+                                      height: 160,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Image.file(
+                                      File(_photoPath!),
+                                      height: 160,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: AppSpacing.xs),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 TextButton.icon(
                                   onPressed: () =>
                                       _showPhotoSourceSheet(context),
-                                  icon: const Icon(Icons.refresh_rounded),
+                                  icon: const Icon(Icons.refresh_outlined, size: 16),
                                   label: const Text('Trocar foto'),
                                 ),
                                 TextButton.icon(
                                   onPressed: () =>
                                       setState(() => _photoPath = null),
-                                  icon: const Icon(Icons.delete_outline_rounded),
+                                  icon: const Icon(Icons.delete_outline, size: 16),
                                   label: const Text('Remover'),
                                 ),
                               ],
@@ -389,20 +421,21 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           children: [
                             Icon(
                               Icons.add_a_photo_outlined,
-                              size: 34,
-                              color: theme.colorScheme.primary,
+                              size: 28,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.xs),
                             Text(
-                              '+ Adicionar fotografia (Câmera ou Galeria)',
+                              'Adicionar fotografia (Câmera ou Galeria)',
                               style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: theme.colorScheme.primary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
-                              'Uma foto ajuda voluntários a identificarem o animal e o local com mais rapidez.',
+                              'Ajuda voluntários na localização do animal.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 12.5,
@@ -411,25 +444,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                             ),
                           ],
                         ),
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // 7. Botão Principal: Publicar pedido
-              FilledButton.icon(
-                onPressed: _isSubmitting ? null : _submitForm,
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.publish_rounded),
-                label: Text(
-                  _isSubmitting ? 'Publicando...' : 'Publicar pedido',
                 ),
               ),
             ],
@@ -448,6 +462,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (sheetContext, setModalState) {
@@ -474,39 +493,42 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
               minChildSize: 0.5,
               builder: (_, scrollController) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Selecionar Município (API IBGE - SC)',
+                        'Selecionar Município (IBGE - SC)',
                         style: Theme.of(sheetContext)
                             .textTheme
                             .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Rio do Sul possui bairros pré-cadastrados. Para outros municípios de SC, a lista é carregada da API oficial do IBGE.',
-                        style: TextStyle(fontSize: 13),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        'Rio do Sul possui bairros cadastrados. Outros municípios de SC são obtidos da API do IBGE.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: AppSpacing.sm),
                       TextField(
                         controller: searchController,
                         onChanged: (_) => setModalState(() {}),
                         decoration: const InputDecoration(
                           hintText:
                               'Buscar cidade (ex: Lontras, Ibirama, Taió...)',
-                          prefixIcon: Icon(Icons.search_rounded),
+                          prefixIcon: Icon(Icons.search_rounded, size: 20),
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: AppSpacing.xs),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.star_rounded),
+                        leading: const Icon(Icons.star_outline_rounded, size: 20),
                         title: const Text(
-                          'Rio do Sul (Padrão com lista de bairros)',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                          'Rio do Sul (Padrão)',
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                         onTap: () {
                           setState(() => _selectedCity = 'Rio do Sul');
@@ -526,11 +548,16 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                     contentPadding: EdgeInsets.zero,
                                     leading: const Icon(
                                       Icons.location_city_outlined,
+                                      size: 18,
                                     ),
-                                    title: Text('$city - SC'),
+                                    title: Text(
+                                      '$city - SC',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
                                     trailing: _selectedCity == city
                                         ? Icon(
-                                            Icons.check_circle_rounded,
+                                            Icons.check_rounded,
+                                            size: 18,
                                             color: Theme.of(sheetContext)
                                                 .colorScheme
                                                 .primary,
@@ -559,24 +586,34 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.md,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.photo_camera_outlined),
-                  title: const Text('Tirar foto com a Câmera'),
+                  leading: const Icon(Icons.photo_camera_outlined, size: 20),
+                  title: const Text('Câmera', style: TextStyle(fontSize: 14)),
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
                     await _pickImage(ImageSource.camera);
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.photo_library_outlined),
-                  title: const Text('Escolher da Galeria'),
+                  leading: const Icon(Icons.photo_library_outlined, size: 20),
+                  title: const Text('Galeria', style: TextStyle(fontSize: 14)),
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
                     await _pickImage(ImageSource.gallery);
@@ -648,7 +685,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
     if (!mounted) return;
 
-    // Reseta o formulário após publicação
     _titleController.clear();
     _customNeighborhoodController.clear();
     _referenceController.clear();
@@ -670,21 +706,5 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     );
 
     widget.onRequestCreated?.call();
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String text;
-
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-    );
   }
 }

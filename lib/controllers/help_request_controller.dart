@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 import '../models/help_request_model.dart';
 import '../repositories/i_help_request_repository.dart';
@@ -15,13 +15,28 @@ enum HomeFilterCategory {
       case HomeFilterCategory.all:
         return 'Todos';
       case HomeFilterCategory.water:
-        return '💧 Água';
+        return 'Água';
       case HomeFilterCategory.food:
-        return '🥣 Alimento';
+        return 'Alimento';
       case HomeFilterCategory.shelter:
-        return '🏠 Abrigo';
+        return 'Abrigo';
       case HomeFilterCategory.urgent:
-        return '🚨 Urgentes';
+        return 'Urgentes';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case HomeFilterCategory.all:
+        return Icons.apps_rounded;
+      case HomeFilterCategory.water:
+        return Icons.water_drop_outlined;
+      case HomeFilterCategory.food:
+        return Icons.restaurant_outlined;
+      case HomeFilterCategory.shelter:
+        return Icons.home_outlined;
+      case HomeFilterCategory.urgent:
+        return Icons.warning_amber_rounded;
     }
   }
 }

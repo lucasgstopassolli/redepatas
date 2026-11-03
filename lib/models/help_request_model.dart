@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 enum AnimalSpecies {
   dog,
   cat,
@@ -11,6 +13,17 @@ enum AnimalSpecies {
         return 'Gato';
       case AnimalSpecies.other:
         return 'Outro';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AnimalSpecies.dog:
+        return Icons.pets_outlined;
+      case AnimalSpecies.cat:
+        return Icons.pets_outlined;
+      case AnimalSpecies.other:
+        return Icons.cruelty_free_outlined;
     }
   }
 
@@ -41,16 +54,16 @@ enum NeedType {
     }
   }
 
-  String get emoji {
+  IconData get icon {
     switch (this) {
       case NeedType.water:
-        return '💧';
+        return Icons.water_drop_outlined;
       case NeedType.food:
-        return '🥣';
+        return Icons.restaurant_outlined;
       case NeedType.shelter:
-        return '🏠';
+        return Icons.home_outlined;
       case NeedType.medical:
-        return '🩺';
+        return Icons.medical_services_outlined;
     }
   }
 

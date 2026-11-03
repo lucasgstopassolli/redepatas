@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -11,212 +12,120 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final illustrationBg =
-        isDark ? AppTheme.darkSurfaceContainer : AppTheme.lightSurfaceContainer;
     final secondaryTextColor =
         isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            // Cabeçalho em terracota
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppTheme.darkSurface
-                    : AppTheme.terracottaPrimary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(28),
-                  bottomRight: Radius.circular(28),
-                ),
-              ),
-              child: Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: AppSpacing.lg),
+              // Logotipo minimalista no topo esquerdo
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.pets_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                  Icon(
+                    Icons.pets,
+                    size: 26,
+                    color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'RedePatas',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Juntos pelos animais da comunidade',
-                          style: TextStyle(
-                            color: Color(0xFFFDE8DF),
-                            fontSize: 13.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'RedePatas',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],
               ),
-            ),
 
-            // Conteúdo central rolável
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 28,
-                ),
-                child: Column(
-                  children: [
-                    // Ilustração central em container arredondado cor areia suave
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 34,
-                        horizontal: 24,
-                      ),
-                      decoration: BoxDecoration(
-                        color: illustrationBg,
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: isDark
-                              ? AppTheme.darkOutline
-                              : AppTheme.lightOutline,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Stack(
-                            alignment: Alignment.center,
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary
-                                      .withValues(alpha: 0.14),
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Text(
-                                  '🐕',
-                                  style: TextStyle(fontSize: 64),
-                                ),
-                              ),
-                              Positioned(
-                                right: -6,
-                                bottom: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.primary,
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.15,
-                                        ),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(
-                                    Icons.pets_rounded,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.center,
-                            children: const [
-                              _WelcomePill(emoji: '💧', label: 'Água'),
-                              _WelcomePill(emoji: '🥣', label: 'Alimento'),
-                              _WelcomePill(emoji: '🏠', label: 'Abrigo'),
-                              _WelcomePill(emoji: '🩺', label: 'Socorro'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      'Toda ajuda conta.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Encontre animais que precisam de água, alimento ou abrigo em Rio do Sul e no Alto Vale do Itajaí.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15.5,
-                        height: 1.45,
-                        color: secondaryTextColor,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
+              const Spacer(flex: 1),
 
-                    // Botão primário: Entrar
-                    FilledButton.icon(
-                      onPressed: () => _showAuthSheet(context, isSignUp: false),
-                      icon: const Icon(Icons.login_rounded),
-                      label: const Text('Entrar'),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Botão secundário: Criar conta
-                    OutlinedButton.icon(
-                      onPressed: () => _showAuthSheet(context, isSignUp: true),
-                      icon: const Icon(Icons.person_add_alt_1_rounded),
-                      label: const Text('Criar conta'),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Botão discreto para apresentação em sala de aula
-                    TextButton.icon(
-                      onPressed: () {
-                        context.read<AuthController>().signInAsDemo();
-                      },
-                      icon: const Icon(Icons.rocket_launch_outlined, size: 18),
-                      label: const Text(
-                        'Entrar como Visitante / Demonstração',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
+              // Bloco de apresentação
+              Text(
+                'Apoio comunitário a animais',
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 26,
+                  letterSpacing: -0.5,
+                  height: 1.2,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Toda ajuda conta.',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Encontre animais que precisam de água, alimento ou abrigo em Rio do Sul e no Alto Vale do Itajaí.',
+                style: TextStyle(
+                  fontSize: 14.5,
+                  height: 1.45,
+                  color: secondaryTextColor,
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+
+              // Capacidades principais com ícones outlined sóbrios
+              Wrap(
+                spacing: AppSpacing.xs,
+                runSpacing: AppSpacing.xs,
+                children: const [
+                  _FeatureItem(
+                    icon: Icons.water_drop_outlined,
+                    label: 'Água',
+                  ),
+                  _FeatureItem(
+                    icon: Icons.restaurant_outlined,
+                    label: 'Alimento',
+                  ),
+                  _FeatureItem(
+                    icon: Icons.home_outlined,
+                    label: 'Abrigo',
+                  ),
+                  _FeatureItem(
+                    icon: Icons.medical_services_outlined,
+                    label: 'Socorro',
+                  ),
+                ],
+              ),
+
+              const Spacer(flex: 2),
+
+              // Ações empilhadas
+              FilledButton(
+                onPressed: () => _showAuthSheet(context, isSignUp: false),
+                child: const Text('Entrar'),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              OutlinedButton(
+                onPressed: () => _showAuthSheet(context, isSignUp: true),
+                child: const Text('Criar conta'),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    context.read<AuthController>().signInAsDemo();
+                  },
+                  child: const Text('Entrar como Visitante / Demonstração'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
         ),
       ),
     );
@@ -233,40 +142,44 @@ class WelcomeScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.control * 2),
+        ),
+      ),
       builder: (sheetContext) {
         return Padding(
           padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + AppSpacing.lg,
           ),
           child: Form(
             key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
                   isSignUp ? 'Criar conta comunitária' : 'Entrar no RedePatas',
                   style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   isSignUp
                       ? 'Cadastre seus dados básicos para publicar pedidos ou ajudar animais.'
                       : 'Informe seu nome e e-mail para acessar os pedidos da comunidade.',
                   style: Theme.of(sheetContext).textTheme.bodyMedium,
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: AppSpacing.md),
                 TextFormField(
                   controller: nameController,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     labelText: 'Seu nome',
                     hintText: 'Ex: Lucas Gabriel ou Ariel Jahn',
-                    prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
@@ -275,14 +188,13 @@ class WelcomeScreen extends StatelessWidget {
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 TextFormField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'E-mail',
                     hintText: 'seuemail@exemplo.com',
-                    prefixIcon: Icon(Icons.alternate_email_rounded),
                   ),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
@@ -292,28 +204,26 @@ class WelcomeScreen extends StatelessWidget {
                   },
                 ),
                 if (isSignUp) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
                       labelText: 'WhatsApp / Telefone (opcional)',
                       hintText: 'Ex: 47999112233',
-                      prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
                   TextFormField(
                     controller: cityController,
                     textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       labelText: 'Cidade padrão',
                       hintText: 'Rio do Sul',
-                      prefixIcon: Icon(Icons.location_city_outlined),
                     ),
                   ),
                 ],
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.md),
                 FilledButton(
                   onPressed: () {
                     if (formKey.currentState?.validate() ?? false) {
@@ -340,31 +250,46 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class _WelcomePill extends StatelessWidget {
-  final String emoji;
+class _FeatureItem extends StatelessWidget {
+  final IconData icon;
   final String label;
 
-  const _WelcomePill({required this.emoji, required this.label});
+  const _FeatureItem({
+    required this.icon,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: theme.colorScheme.surface,
+        borderRadius: AppRadius.controlRadius,
+        border: Border.all(
+          color: theme.colorScheme.outline,
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 13)),
-          const SizedBox(width: 5),
+          Icon(
+            icon,
+            size: 16,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

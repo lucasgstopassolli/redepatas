@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import 'app_tokens.dart';
 
 class AppTheme {
   // Cores base da identidade terrosa
@@ -41,6 +44,71 @@ class AppTheme {
 
   static const Color criticalUrgency = Color(0xFFB3261E);
   static const Color criticalUrgencyDark = Color(0xFFFF897D);
+  static const Color urgencyCriticalBgLight = Color(0xFFFBEBEA);
+  static const Color urgencyCriticalBgDark = Color(0xFF421815);
+
+  static const Color urgencyHighTextLight = Color(0xFFA65F17);
+  static const Color urgencyHighTextDark = Color(0xFFFFCA7A);
+  static const Color urgencyHighBgLight = Color(0xFFFBF1E6);
+  static const Color urgencyHighBgDark = Color(0xFF382613);
+
+  static TextTheme _buildTextTheme(Color primaryColor, Color secondaryColor) {
+    final base = ThemeData(brightness: Brightness.light).textTheme;
+    final inter = GoogleFonts.interTextTheme(base);
+
+    return inter.copyWith(
+      titleLarge: inter.titleLarge?.copyWith(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: primaryColor,
+        letterSpacing: -0.3,
+      ),
+      titleMedium: inter.titleMedium?.copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: primaryColor,
+        letterSpacing: -0.2,
+      ),
+      titleSmall: inter.titleSmall?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: primaryColor,
+      ),
+      bodyLarge: inter.bodyLarge?.copyWith(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: primaryColor,
+        height: 1.45,
+      ),
+      bodyMedium: inter.bodyMedium?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: secondaryColor,
+        height: 1.4,
+      ),
+      bodySmall: inter.bodySmall?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: secondaryColor,
+      ),
+      labelLarge: inter.labelLarge?.copyWith(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: primaryColor,
+      ),
+      labelMedium: inter.labelMedium?.copyWith(
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+        color: secondaryColor,
+      ),
+      labelSmall: inter.labelSmall?.copyWith(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.6,
+        color: secondaryColor,
+      ),
+    );
+  }
 
   // TEMA CLARO
   static ThemeData get lightTheme {
@@ -59,22 +127,34 @@ class AppTheme {
       error: criticalUrgency,
     );
 
+    final textTheme = _buildTextTheme(lightOnSurface, lightSecondaryText);
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: lightBackground,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: terracottaPrimary,
-        foregroundColor: Colors.white,
+      textTheme: textTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: lightBackground,
+        foregroundColor: lightOnSurface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: const IconThemeData(color: lightOnSurface, size: 22),
+        shape: const Border(
+          bottom: BorderSide(color: lightOutline, width: 1),
+        ),
       ),
       cardTheme: CardThemeData(
         color: lightSurface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.controlRadius,
           side: const BorderSide(color: lightOutline, width: 1),
         ),
       ),
@@ -82,11 +162,13 @@ class AppTheme {
         backgroundColor: lightSurface,
         indicatorColor: lightSurfaceContainer,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: terracottaPrimary,
             );
           }
@@ -98,68 +180,99 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: terracottaPrimary);
+            return const IconThemeData(color: terracottaPrimary, size: 22);
           }
-          return const IconThemeData(color: lightSecondaryText);
+          return const IconThemeData(color: lightSecondaryText, size: 22);
         }),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: terracottaPrimary,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(48),
+          elevation: 0,
           textStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: AppRadius.controlRadius,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: terracottaPrimary,
-          minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: terracottaPrimary, width: 1.5),
+          minimumSize: const Size.fromHeight(48),
+          side: const BorderSide(color: terracottaPrimary, width: 1.2),
+          elevation: 0,
           textStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: AppRadius.controlRadius,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: terracottaPrimary,
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.controlRadius,
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: lightSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: const TextStyle(color: lightSecondaryText),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        hintStyle: const TextStyle(color: lightSecondaryText, fontSize: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: lightOutline),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: lightOutline, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: lightOutline),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: lightOutline, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: terracottaPrimary, width: 2),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: terracottaPrimary, width: 1.5),
         ),
       ),
       dividerTheme: const DividerThemeData(
         color: lightOutline,
         thickness: 1,
+        space: 1,
       ),
       chipTheme: ChipThemeData(
         backgroundColor: lightSurface,
-        selectedColor: caramelSecondary.withValues(alpha: 0.22),
+        selectedColor: lightSurfaceContainer,
         checkmarkColor: terracottaPrimary,
-        side: const BorderSide(color: lightOutline),
+        showCheckmark: false,
+        side: const BorderSide(color: lightOutline, width: 1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.controlRadius,
+        ),
+        labelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: lightOnSurface,
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: AppRadius.controlRadius),
+          ),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: lightOutline, width: 1),
+          ),
         ),
       ),
     );
@@ -182,34 +295,48 @@ class AppTheme {
       error: criticalUrgency,
     );
 
+    final textTheme = _buildTextTheme(darkOnSurface, darkSecondaryText);
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: darkBackground,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: darkSurface,
+      textTheme: textTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkBackground,
         foregroundColor: darkOnSurface,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: false,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
+        iconTheme: const IconThemeData(color: darkOnSurface, size: 22),
+        shape: const Border(
+          bottom: BorderSide(color: darkOutline, width: 1),
+        ),
       ),
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppRadius.controlRadius,
           side: const BorderSide(color: darkOutline, width: 1),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: darkSurface,
-        indicatorColor: darkOutline,
+        indicatorColor: darkSurfaceContainer,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return const TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: terracottaDarkPrimary,
             );
           }
@@ -221,68 +348,99 @@ class AppTheme {
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: terracottaDarkPrimary);
+            return const IconThemeData(color: terracottaDarkPrimary, size: 22);
           }
-          return const IconThemeData(color: darkSecondaryText);
+          return const IconThemeData(color: darkSecondaryText, size: 22);
         }),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: terracottaDarkPrimary,
           foregroundColor: darkBackground,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(48),
+          elevation: 0,
           textStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: AppRadius.controlRadius,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: terracottaDarkPrimary,
-          minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: terracottaDarkPrimary, width: 1.5),
+          minimumSize: const Size.fromHeight(48),
+          side: const BorderSide(color: terracottaDarkPrimary, width: 1.2),
+          elevation: 0,
           textStyle: const TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: AppRadius.controlRadius,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: terracottaDarkPrimary,
+          textStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.controlRadius,
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: const TextStyle(color: darkSecondaryText),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        hintStyle: const TextStyle(color: darkSecondaryText, fontSize: 14),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: darkOutline),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: darkOutline, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: darkOutline),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: darkOutline, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: terracottaDarkPrimary, width: 2),
+          borderRadius: AppRadius.controlRadius,
+          borderSide: const BorderSide(color: terracottaDarkPrimary, width: 1.5),
         ),
       ),
       dividerTheme: const DividerThemeData(
         color: darkOutline,
         thickness: 1,
+        space: 1,
       ),
       chipTheme: ChipThemeData(
         backgroundColor: darkSurface,
-        selectedColor: caramelSecondary.withValues(alpha: 0.28),
+        selectedColor: darkSurfaceContainer,
         checkmarkColor: terracottaDarkPrimary,
-        side: const BorderSide(color: darkOutline),
+        showCheckmark: false,
+        side: const BorderSide(color: darkOutline, width: 1),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: AppRadius.controlRadius,
+        ),
+        labelStyle: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: darkOnSurface,
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(borderRadius: AppRadius.controlRadius),
+          ),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: darkOutline, width: 1),
+          ),
         ),
       ),
     );

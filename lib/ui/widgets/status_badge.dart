@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 
 class StatusBadge extends StatelessWidget {
@@ -17,11 +18,10 @@ class StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final (Color bg, Color fg, IconData icon) = switch (status) {
+    final (Color bg, Color fg) = switch (status) {
       RequestStatus.open => (
           isDark ? AppTheme.statusOpenBgDark : AppTheme.statusOpenBgLight,
           isDark ? AppTheme.statusOpenTextDark : AppTheme.statusOpenText,
-          Icons.schedule_rounded,
         ),
       RequestStatus.inProgress => (
           isDark
@@ -30,7 +30,6 @@ class StatusBadge extends StatelessWidget {
           isDark
               ? AppTheme.statusInProgressTextDark
               : AppTheme.statusInProgressText,
-          Icons.volunteer_activism_rounded,
         ),
       RequestStatus.completed => (
           isDark
@@ -39,30 +38,36 @@ class StatusBadge extends StatelessWidget {
           isDark
               ? AppTheme.statusCompletedTextDark
               : AppTheme.statusCompletedText,
-          Icons.check_circle_rounded,
         ),
     };
 
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: compact ? 10 : 12,
-        vertical: compact ? 4 : 6,
+        horizontal: compact ? 8 : 10,
+        vertical: compact ? 3 : 5,
       ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: AppRadius.pillRadius,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: compact ? 13 : 15, color: fg),
-          const SizedBox(width: 5),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: fg,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
           Text(
             status.label,
             style: TextStyle(
               color: fg,
-              fontSize: compact ? 12 : 13,
-              fontWeight: FontWeight.w700,
+              fontSize: compact ? 11.5 : 12,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
