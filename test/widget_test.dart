@@ -144,13 +144,18 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    // Navega para Aba Pedidos (Minhas Ações)
-    await tester.tap(find.text('Pedidos'));
+    // Navega para a aba Buscar (lupa) e verifica a tela de busca/filtros
+    await tester.tap(find.byTooltip('Buscar'));
+    await tester.pumpAndSettle();
+    expect(find.text('Buscar e Filtrar'), findsOneWidget);
+
+    // Navega para a aba Pedidos (Minhas Ações, entre o + e o perfil)
+    await tester.tap(find.byTooltip('Pedidos'));
     await tester.pumpAndSettle();
     expect(find.text('Minhas Ações'), findsOneWidget);
 
-    // Navega para Aba Novo (Solicitar Ajuda) e publica um novo pedido
-    await tester.tap(find.text('Novo'));
+    // Navega para a opção central Novo (Solicitar Ajuda) na barra flutuante e publica um novo pedido
+    await tester.tap(find.byTooltip('Novo'));
     await tester.pumpAndSettle();
     expect(find.text('Novo pedido de apoio'), findsOneWidget);
 
@@ -177,7 +182,7 @@ void main() {
     expect(find.text('Cãozinho preto amigável'), findsOneWidget);
 
     // Navega para Aba Minha área (Guia & Minha Área)
-    await tester.tap(find.text('Minha área'));
+    await tester.tap(find.byTooltip('Minha área'));
     await tester.pumpAndSettle();
     expect(find.text('Guia & Minha Área'), findsOneWidget);
     expect(find.text('Tema do Aplicativo'), findsOneWidget);

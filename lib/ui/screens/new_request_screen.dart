@@ -82,39 +82,12 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.xs,
-          ),
-          decoration: BoxDecoration(
-            color: theme.scaffoldBackgroundColor,
-            border: Border(
-              top: BorderSide(color: theme.colorScheme.outline, width: 1),
-            ),
-          ),
-          child: FilledButton(
-            onPressed: _isSubmitting ? null : _submitForm,
-            child: _isSubmitting
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Text('Publicar pedido'),
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
-          AppSpacing.xl,
+          AppSpacing.xl * 3.5,
         ),
         child: Form(
           key: _formKey,
@@ -445,6 +418,20 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           ],
                         ),
                 ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              FilledButton(
+                onPressed: _isSubmitting ? null : _submitForm,
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Publicar pedido'),
               ),
             ],
           ),

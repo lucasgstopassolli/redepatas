@@ -8,23 +8,10 @@ import '../widgets/empty_state.dart';
 import '../widgets/request_card.dart';
 import 'request_detail_screen.dart';
 
-class HomeRequestsScreen extends StatefulWidget {
+class HomeRequestsScreen extends StatelessWidget {
   final VoidCallback? onNewRequestTap;
 
   const HomeRequestsScreen({super.key, this.onNewRequestTap});
-
-  @override
-  State<HomeRequestsScreen> createState() => _HomeRequestsScreenState();
-}
-
-class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,47 +24,62 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'RedePatas',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 18,
-                letterSpacing: -0.3,
-              ),
-            ),
-            InkWell(
-              onTap: () => _showCityFilterModal(context, controller),
-              borderRadius: AppRadius.controlRadius,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.place_outlined,
-                    size: 13,
-                    color: secondaryTextColor,
-                  ),
-                  const SizedBox(width: 3),
-                  Text(
-                    controller.selectedCityFilter ?? 'Rio do Sul e região',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: secondaryTextColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Icon(
-                    Icons.expand_more_rounded,
-                    size: 16,
-                    color: secondaryTextColor,
-                  ),
-                ],
-              ),
-            ),
-          ],
+        title: const Text(
+          'RedePatas',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
+            letterSpacing: -0.3,
+          ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.md),
+            child: InkWell(
+              onTap: () => _showCityFilterModal(context, controller),
+              borderRadius: AppRadius.pillRadius,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainer,
+                  borderRadius: AppRadius.pillRadius,
+                  border: Border.all(
+                    color: theme.colorScheme.outline,
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.place_outlined,
+                      size: 14,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      controller.selectedCityFilter ?? 'Rio do Sul e região',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.expand_more_rounded,
+                      size: 16,
+                      color: secondaryTextColor,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: controller.loadRequests,
@@ -94,31 +96,14 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      controller: _searchController,
-                      onChanged: controller.setSearchQuery,
-                      decoration: InputDecoration(
-                        hintText: 'Buscar por bairro, animal ou necessidade',
-                        prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                        suffixIcon: controller.searchQuery.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded, size: 18),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  controller.setSearchQuery('');
-                                },
-                              )
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           for (final category in HomeFilterCategory.values)
                             Padding(
-                              padding: const EdgeInsets.only(right: AppSpacing.xs),
+                              padding:
+                                  const EdgeInsets.only(right: AppSpacing.xs),
                               child: FilterChip(
                                 avatar: Icon(category.icon, size: 16),
                                 label: Text(category.label),
@@ -160,10 +145,10 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                   icon: Icons.search_off_outlined,
                   title: 'Nenhum pedido encontrado',
                   description:
-                      'Tente ajustar a busca ou registre um novo pedido de apoio para um animal.',
-                  action: widget.onNewRequestTap != null
+                      'Tente ajustar o filtro ou registre um novo pedido de apoio para um animal.',
+                  action: onNewRequestTap != null
                       ? OutlinedButton.icon(
-                          onPressed: widget.onNewRequestTap,
+                          onPressed: onNewRequestTap,
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Solicitar ajuda para um animal'),
                         )
@@ -176,7 +161,7 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                   AppSpacing.md,
                   AppSpacing.xs,
                   AppSpacing.md,
-                  AppSpacing.lg,
+                  AppSpacing.xl * 3.5,
                 ),
                 sliver: SliverList.separated(
                   itemCount: requests.length,

@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/theme_controller.dart';
 import '../widgets/section_header.dart';
+import 'my_actions_screen.dart';
 
 class ProfileGuideScreen extends StatelessWidget {
   const ProfileGuideScreen({super.key});
@@ -57,7 +58,7 @@ class ProfileGuideScreen extends StatelessWidget {
           AppSpacing.md,
           AppSpacing.md,
           AppSpacing.md,
-          AppSpacing.xl,
+          AppSpacing.xl * 3.5,
         ),
         children: [
           // Bloco 1: Perfil do Cidadão/Voluntário
@@ -152,33 +153,75 @@ class ProfileGuideScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainer,
-                      borderRadius: AppRadius.controlRadius,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _StatItem(
-                          count: createdCount.toString(),
-                          label: 'pedidos criados',
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MyActionsScreen(),
                         ),
-                        Container(
-                          width: 1,
-                          height: 24,
-                          color: theme.colorScheme.outline,
-                        ),
-                        _StatItem(
-                          count: helpedCount.toString(),
-                          label: 'animais ajudados',
-                        ),
-                      ],
+                      );
+                    },
+                    borderRadius: AppRadius.controlRadius,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainer,
+                        borderRadius: AppRadius.controlRadius,
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _StatItem(
+                                count: createdCount.toString(),
+                                label: 'pedidos criados',
+                              ),
+                              Container(
+                                width: 1,
+                                height: 24,
+                                color: theme.colorScheme.outline,
+                              ),
+                              _StatItem(
+                                count: helpedCount.toString(),
+                                label: 'animais ajudados',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          const Divider(),
+                          const SizedBox(height: AppSpacing.xs),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.list_alt_outlined,
+                                size: 16,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Ver meus pedidos e ações',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                size: 16,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
@@ -200,12 +243,12 @@ class ProfileGuideScreen extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     'Escolha entre tema claro, escuro ou sincronizado com o sistema.',
                     style: TextStyle(color: secondaryTextColor, fontSize: 13),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   SizedBox(
                     width: double.infinity,
                     child: SegmentedButton<ThemeMode>(
@@ -213,18 +256,18 @@ class ProfileGuideScreen extends StatelessWidget {
                       segments: const [
                         ButtonSegment(
                           value: ThemeMode.light,
-                          icon: Icon(Icons.light_mode_outlined, size: 16),
-                          label: Text('Claro'),
+                          icon: Icon(Icons.light_mode_outlined, size: 22),
+                          label: null,
                         ),
                         ButtonSegment(
                           value: ThemeMode.dark,
-                          icon: Icon(Icons.dark_mode_outlined, size: 16),
-                          label: Text('Escuro'),
+                          icon: Icon(Icons.dark_mode_outlined, size: 22),
+                          label: null,
                         ),
                         ButtonSegment(
                           value: ThemeMode.system,
-                          icon: Icon(Icons.settings_suggest_outlined, size: 16),
-                          label: Text('Sistema'),
+                          icon: Icon(Icons.settings_suggest_outlined, size: 22),
+                          label: null,
                         ),
                       ],
                       selected: {themeController.themeMode},
@@ -237,7 +280,7 @@ class ProfileGuideScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
 
           // Bloco 3: Guia Rápido de Abordagem Segura
           Card(
