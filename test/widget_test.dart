@@ -1,9 +1,16 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:redepatas/core/constants/rio_do_sul_bairros.dart';
+import 'package:redepatas/core/services/ibge_city_service.dart';
 import 'package:redepatas/core/theme/app_theme.dart';
 import 'package:redepatas/main.dart';
 import 'package:redepatas/models/help_request_model.dart';
 import 'package:redepatas/repositories/i_help_request_repository.dart';
+import 'package:redepatas/repositories/sqlite_help_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class InMemoryHelpRepository implements IHelpRequestRepository {
   final List<HelpRequestModel> _items = [
@@ -148,5 +155,92 @@ void main() {
     expect(dark.colorScheme.primary.toARGB32(), 0xFFE07A5F);
     expect(dark.scaffoldBackgroundColor.toARGB32(), 0xFF1A1412);
     expect(dark.colorScheme.surface.toARGB32(), 0xFF261E1B);
+  });
+
+  test('Valida SqliteHelpRepository (seed inicial, create, assign e status)',
+      () async {
+    final sqliteRepo = SqliteHelpRepository(
+      customDatabasePath: inMemoryDatabasePath,
+    );
+
+    // 1. Verifica os 3 seeds iniciais de Rio do Sul
+    final initial = await sqliteRepo.getAllRequests();
+    expect(initial.length, 3);
+    expect(
+      initial.map((r) => r.title),
+      containsAll(['Cão caramelo', 'Gata cinza', 'Filhote malhado']),
+    );
+
+    // 2. Cria um novo pedido
+    final novoPedido = HelpRequestModel(
+      id: 'test_req_100',
+      title: 'Cão idoso no abrigo de ônibus',
+      species: AnimalSpecies.dog,
+      needs: const [NeedType.water, NeedType.food, NeedType.shelter],
+      urgency: UrgencyLevel.high,
+      city: 'Rio do Sul',
+      neighborhood: 'Budag',
+      referencePoint: 'Em frente ao mercado',
+      description: 'Precisa de água e cobertor.',
+      status: RequestStatus.open,
+      authorId: 'user_1',
+      authorName: 'Lucas',
+      createdAt: DateTime.now().add(const Duration(minutes: 5)),
+    );
+    await sqliteRepo.createRequest(novoPedido);
+
+    final afterCreate = await sqliteRepo.getAllRequests();
+    expect(afterCreate.length, 4);
+    expect(afterCreate.first.id, 'test_req_100');
+    expect(
+      afterCreate.first.needs,
+      equals([NeedType.water, NeedType.food, NeedType.shelter]),
+    );
+
+    // 3. Voluntário assume o pedido
+    await sqliteRepo.assignVolunteer(
+      requestId: 'test_req_100',
+      volunteerId: 'vol_1',
+      volunteerName: 'Ariel Jahn',
+      commitment: 'Vou levar Alimento hoje',
+    );
+    final afterAssign = await sqliteRepo.getAllRequests();
+    final updated = afterAssign.firstWhere((r) => r.id == 'test_req_100');
+    expect(updated.status, RequestStatus.inProgress);
+    expect(updated.helperName, 'Ariel Jahn');
+    expect(updated.helperCommitment, 'Vou levar Alimento hoje');
+
+    // 4. Conclui o pedido
+    await sqliteRepo.updateStatus('test_req_100', RequestStatus.completed);
+    final afterComplete = await sqliteRepo.getAllRequests();
+    final completed = afterComplete.firstWhere((r) => r.id == 'test_req_100');
+    expect(completed.status, RequestStatus.completed);
+
+    await sqliteRepo.close();
+  });
+
+  test('Valida bairros de Rio do Sul e IbgeCityService (online e fallback)',
+      () async {
+    expect(bairrosRioDoSul, containsAll(['Centro', 'Canoas', 'Santana', 'Budag']));
+
+    final mockOnlineClient = MockClient((request) async {
+      final body = json.encode([
+        {'nome': 'Agronômica'},
+        {'nome': 'Ibirama'},
+        {'nome': 'Lontras'},
+        {'nome': 'Rio do Sul'},
+      ]);
+      return http.Response(body, 200);
+    });
+    final onlineService = IbgeCityService(client: mockOnlineClient);
+    final cities = await onlineService.fetchSantaCatarinaCities();
+    expect(cities, equals(['Agronômica', 'Ibirama', 'Lontras', 'Rio do Sul']));
+
+    final mockOfflineClient = MockClient((request) async {
+      throw Exception('Sem conexão');
+    });
+    final offlineService = IbgeCityService(client: mockOfflineClient);
+    final fallbackCities = await offlineService.fetchSantaCatarinaCities();
+    expect(fallbackCities, containsAll(['Rio do Sul', 'Lontras', 'Ibirama', 'Taió']));
   });
 }

@@ -5,14 +5,17 @@ class IbgeCityService {
   static const String _ibgeScUrl =
       'https://servicodados.ibge.gov.br/api/v1/localidades/estados/SC/municipios?orderBy=nome';
 
+  final http.Client _client;
   List<String>? _cachedCities;
+
+  IbgeCityService({http.Client? client}) : _client = client ?? http.Client();
 
   Future<List<String>> fetchSantaCatarinaCities() async {
     if (_cachedCities != null && _cachedCities!.isNotEmpty) {
       return _cachedCities!;
     }
     try {
-      final response = await http
+      final response = await _client
           .get(Uri.parse(_ibgeScUrl))
           .timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {

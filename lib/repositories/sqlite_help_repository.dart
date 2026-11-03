@@ -8,11 +8,14 @@ import 'i_help_request_repository.dart';
 
 class SqliteHelpRepository implements IHelpRequestRepository {
   static const String _tableName = 'help_requests';
+  final String? customDatabasePath;
   Database? _db;
 
   // Fallback em memória caso seja executado no navegador (Flutter Web)
   final List<HelpRequestModel> _webMemoryFallback = [];
   bool _webInitialized = false;
+
+  SqliteHelpRepository({this.customDatabasePath});
 
   Future<Database?> get _database async {
     if (kIsWeb) {
@@ -29,8 +32,13 @@ class SqliteHelpRepository implements IHelpRequestRepository {
       databaseFactory = databaseFactoryFfi;
     }
 
-    final dbPath = await getDatabasesPath();
-    final path = p.join(dbPath, 'redepatas_v1.db');
+    final String path;
+    if (customDatabasePath != null) {
+      path = customDatabasePath!;
+    } else {
+      final dbPath = await getDatabasesPath();
+      path = p.join(dbPath, 'redepatas_v1.db');
+    }
 
     return openDatabase(
       path,
@@ -230,5 +238,10 @@ class SqliteHelpRepository implements IHelpRequestRepository {
       where: 'id = ?',
       whereArgs: [requestId],
     );
+  }
+
+  Future<void> close() async {
+    await _db?.close();
+    _db = null;
   }
 }
