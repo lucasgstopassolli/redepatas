@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:redepatas/core/theme/app_theme.dart';
 import 'package:redepatas/main.dart';
 import 'package:redepatas/models/help_request_model.dart';
 import 'package:redepatas/repositories/i_help_request_repository.dart';
@@ -127,5 +128,25 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Guia & Minha Área'), findsOneWidget);
     expect(find.text('Tema do Aplicativo'), findsOneWidget);
+
+    // Testa alternância do SegmentedButton<ThemeMode> (Claro / Escuro / Sistema)
+    await tester.tap(find.text('🌙 Escuro'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('☀️ Claro'));
+    await tester.pumpAndSettle();
+  });
+
+  test('Valida paleta terrosa do Design System (AppTheme Claro e Escuro)', () {
+    final light = AppTheme.lightTheme;
+    final dark = AppTheme.darkTheme;
+
+    expect(light.colorScheme.primary.toARGB32(), 0xFFC85A32);
+    expect(light.colorScheme.secondary.toARGB32(), 0xFFD48C46);
+    expect(light.colorScheme.tertiary.toARGB32(), 0xFF5F7A61);
+    expect(light.scaffoldBackgroundColor.toARGB32(), 0xFFFAF6F0);
+
+    expect(dark.colorScheme.primary.toARGB32(), 0xFFE07A5F);
+    expect(dark.scaffoldBackgroundColor.toARGB32(), 0xFF1A1412);
+    expect(dark.colorScheme.surface.toARGB32(), 0xFF261E1B);
   });
 }

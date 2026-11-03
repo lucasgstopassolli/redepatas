@@ -7,7 +7,7 @@ class AppTheme {
   static const Color caramelSecondary = Color(0xFFD48C46);
   static const Color sageTertiary = Color(0xFF5F7A61);
 
-  // Fundos e Superfícies (Claro)
+  // Fundos e Superfícies (Modo Claro — Areia/Creme)
   static const Color lightBackground = Color(0xFFFAF6F0);
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceContainer = Color(0xFFF3EAE1);
@@ -15,7 +15,7 @@ class AppTheme {
   static const Color lightSecondaryText = Color(0xFF6E5A53);
   static const Color lightOutline = Color(0xFFE2D5C8);
 
-  // Fundos e Superfícies (Escuro)
+  // Fundos e Superfícies (Modo Escuro — Terra Noturna)
   static const Color darkBackground = Color(0xFF1A1412);
   static const Color darkSurface = Color(0xFF261E1B);
   static const Color darkSurfaceContainer = Color(0xFF362A26);
@@ -52,6 +52,8 @@ class AppTheme {
       tertiary: sageTertiary,
       surface: lightSurface,
       onSurface: lightOnSurface,
+      onSurfaceVariant: lightSecondaryText,
+      surfaceContainer: lightSurfaceContainer,
       surfaceContainerHighest: lightSurfaceContainer,
       outline: lightOutline,
       error: criticalUrgency,
@@ -153,7 +155,8 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: lightSurface,
-        selectedColor: const Color(0xFFFDE8DF),
+        selectedColor: caramelSecondary.withValues(alpha: 0.22),
+        checkmarkColor: terracottaPrimary,
         side: const BorderSide(color: lightOutline),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -172,8 +175,11 @@ class AppTheme {
       tertiary: sageTertiary,
       surface: darkSurface,
       onSurface: darkOnSurface,
+      onSurfaceVariant: darkSecondaryText,
+      surfaceContainer: darkSurfaceContainer,
       surfaceContainerHighest: darkSurfaceContainer,
       outline: darkOutline,
+      error: criticalUrgency,
     );
 
     return ThemeData(
@@ -272,7 +278,8 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: darkSurface,
-        selectedColor: const Color(0xFF4A2318),
+        selectedColor: caramelSecondary.withValues(alpha: 0.28),
+        checkmarkColor: terracottaDarkPrimary,
         side: const BorderSide(color: darkOutline),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
