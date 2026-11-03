@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -147,10 +148,32 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Minhas Ações'), findsOneWidget);
 
-    // Navega para Aba Novo (Solicitar Ajuda)
+    // Navega para Aba Novo (Solicitar Ajuda) e publica um novo pedido
     await tester.tap(find.text('Novo'));
     await tester.pumpAndSettle();
     expect(find.text('Novo pedido de apoio'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Identificação do animal *'),
+      'Cãozinho preto amigável',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Ponto de referência *'),
+      'Próximo à ponte central',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Detalhes sobre o animal *'),
+      'Aparenta estar com fome e sede.',
+    );
+
+    final publishButton = find.text('Publicar pedido');
+    await tester.ensureVisible(publishButton);
+    await tester.pumpAndSettle();
+    await tester.tap(publishButton);
+    await tester.pumpAndSettle();
+
+    // Verifica se voltou para a aba Início e o novo pedido apareceu imediatamente
+    expect(find.text('Cãozinho preto amigável'), findsOneWidget);
 
     // Navega para Aba Minha área (Guia & Minha Área)
     await tester.tap(find.text('Minha área'));
