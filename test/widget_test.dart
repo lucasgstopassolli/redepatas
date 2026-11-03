@@ -120,6 +120,28 @@ void main() {
     expect(find.text('Cão caramelo'), findsOneWidget);
     expect(find.text('Gata cinza'), findsOneWidget);
 
+    // Abre a Tela de Detalhes do Pedido ("Cão caramelo") e testa o fluxo "Quero Ajudar"
+    await tester.tap(find.text('Cão caramelo'));
+    await tester.pumpAndSettle();
+    expect(find.text('Detalhes do Pedido'), findsOneWidget);
+    expect(find.text('Quero Ajudar este Animal'), findsOneWidget);
+
+    await tester.tap(find.text('Quero Ajudar este Animal'));
+    await tester.pumpAndSettle();
+    expect(find.text('Confirmar apoio ao animal'), findsOneWidget);
+
+    final confirmBtn = find.text('Confirmar Compromisso');
+    await tester.ensureVisible(confirmBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(confirmBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Marcar ajuda como Concluída'), findsOneWidget);
+
+    // Volta para a tela principal
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     // Navega para Aba Pedidos (Minhas Ações)
     await tester.tap(find.text('Pedidos'));
     await tester.pumpAndSettle();

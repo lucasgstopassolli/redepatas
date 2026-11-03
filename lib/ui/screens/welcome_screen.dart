@@ -226,6 +226,7 @@ class WelcomeScreen extends StatelessWidget {
     final nameController = TextEditingController();
     final emailController = TextEditingController();
     final phoneController = TextEditingController();
+    final cityController = TextEditingController(text: 'Rio do Sul');
     final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet<void>(
@@ -301,15 +302,29 @@ class WelcomeScreen extends StatelessWidget {
                       prefixIcon: Icon(Icons.phone_outlined),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: cityController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Cidade padrão',
+                      hintText: 'Rio do Sul',
+                      prefixIcon: Icon(Icons.location_city_outlined),
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 20),
                 FilledButton(
                   onPressed: () {
                     if (formKey.currentState?.validate() ?? false) {
+                      final defaultCity = cityController.text.trim().isEmpty
+                          ? 'Rio do Sul'
+                          : cityController.text.trim();
                       context.read<AuthController>().signIn(
                             name: nameController.text,
                             email: emailController.text,
                             phone: phoneController.text,
+                            defaultCity: defaultCity,
                           );
                       Navigator.of(sheetContext).pop();
                     }

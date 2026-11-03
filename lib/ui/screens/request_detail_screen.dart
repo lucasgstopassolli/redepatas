@@ -39,6 +39,13 @@ class RequestDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalhes do Pedido'),
+        actions: [
+          IconButton(
+            tooltip: 'Editar informações do pedido',
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showEditRequestModal(context, request),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -444,6 +451,100 @@ class RequestDetailScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.favorite_rounded),
                     label: const Text('Confirmar Compromisso'),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditRequestModal(BuildContext context, HelpRequestModel request) {
+    final titleCtrl = TextEditingController(text: request.title);
+    final refCtrl = TextEditingController(text: request.referencePoint);
+    final descCtrl = TextEditingController(text: request.description);
+    UrgencyLevel selectedUrgency = request.urgency;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setModalState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Editar Pedido',
+                    style:
+                        Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: titleCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Identificação do animal',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: refCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Ponto de referência',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descCtrl,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Descrição da situação',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: UrgencyLevel.values.map((u) {
+                      return ChoiceChip(
+                        label: Text('Urgência: ${u.label}'),
+                        selected: selectedUrgency == u,
+                        onSelected: (_) {
+                          setModalState(() => selectedUrgency = u);
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 18),
+                  FilledButton(
+                    onPressed: () async {
+                      final updated = request.copyWith(
+                        title: titleCtrl.text.trim().isEmpty
+                            ? request.title
+                            : titleCtrl.text.trim(),
+                        referencePoint: refCtrl.text.trim(),
+                        description: descCtrl.text.trim(),
+                        urgency: selectedUrgency,
+                      );
+                      await context
+                          .read<HelpRequestController>()
+                          .updateRequest(updated);
+                      if (sheetContext.mounted) {
+                        Navigator.of(sheetContext).pop();
+                      }
+                    },
+                    child: const Text('Salvar alterações'),
                   ),
                 ],
               ),

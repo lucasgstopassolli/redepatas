@@ -310,9 +310,9 @@ class ProfileGuideScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const _EmergencyContactCard(
-            title: 'Polícia Militar / Denúncia de Maus-Tratos (190)',
+            title: 'Polícia Militar Ambiental',
             subtitle:
-                'Abandono e maus-tratos a animais são crimes (Lei Federal nº 9.605/98).',
+                'Fiscalização ambiental e denúncias de maus-tratos ou abandono de animais (Lei nº 9.605/98).',
             icon: Icons.shield_outlined,
             actionLabel: 'Ligar 190',
             url: 'tel:190',
