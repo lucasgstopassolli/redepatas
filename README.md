@@ -1,36 +1,36 @@
 # 🐾 RedePatas
 
-Aplicativo móvel comunitário desenvolvido em **Flutter (Material 3)** para registrar, organizar e acompanhar solicitações de apoio para animais em situação de rua que necessitam de **Água**, **Alimento**, **Abrigo** ou **Socorro/Cuidados** em **Rio do Sul (SC)** e região do **Alto Vale do Itajaí**.
+A community mobile application developed in **Flutter (Material 3)** to register, organize, and track support requests for stray animals in need of **Water**, **Food**, **Shelter**, or **Rescue/Care** in **Rio do Sul (SC)** and the **Alto Vale do Itajaí** region.
 
-* **Disciplina:** Desenvolvimento para Plataformas Móveis
-* **Curso:** Sistemas de Informação (Projeto de Extensão — Desenvolvimento e Cidadania)
-* **Equipe:** Ariel Jahn e Lucas Gabriel Stopassoli
-
----
-
-## ✨ Funcionalidades Principais
-
-1. **Boas-Vindas e Identificação Rápida (`WelcomeScreen`)**:
-   - Acesso simplificado (Entrar, Criar Conta ou modo Visitante/Demonstração).
-2. **Mural Comunitário (`HomeRequestsScreen` — Aba `Início`)**:
-   - Busca textual por bairro, espécie ou necessidade.
-   - Filtros rápidos por categoria (`Todos`, `💧 Água`, `🥣 Alimento`, `🏠 Abrigo`, `🚨 Urgentes`, `✓ Concluídos`) e filtro por município.
-3. **Ciclo de Vida e Atendimento (`RequestDetailScreen`)**:
-   - Status claros: **`Aberto`**, **`Em atendimento`** e **`Concluído`**.
-   - Fluxo **"Quero Ajudar este Animal"** com registro do compromisso do voluntário e botão direto para contato via **WhatsApp**.
-4. **Minhas Ações (`MyActionsScreen` — Aba `Pedidos`)**:
-   - Sub-abas **Estou ajudando** e **Criados por mim**.
-5. **Cadastro de Solicitação (`NewRequestScreen` — Aba `Novo`)**:
-   - Múltiplas necessidades (`Água`, `Alimento`, `Abrigo`, `Socorro/Cuidados`) e Nível de Urgência (`Normal`, `Alta`, `Crítica`).
-   - **Localização Inteligente**: Bairros oficiais de **Rio do Sul - SC** pré-configurados + integração com a **API oficial do IBGE** para todos os municípios de Santa Catarina.
-   - Captura opcional de foto via Câmera ou Galeria (`image_picker`).
-6. **Guia & Minha Área (`ProfileGuideScreen` — Aba `Minha área`)**:
-   - Seletor persistente de Tema (`☀️ Claro`, `🌙 Escuro`, `📱 Sistema`) em paleta terrosa/terracota.
-   - Guia Rápido de Abordagem Segura e Contatos Úteis (APAD Rio do Sul, Prefeitura/Bem-Estar Animal, Bombeiros 193, PM 190).
+- **Course:** Mobile Platform Development
+- **Program:** Information Systems (Outreach Project — Development and Citizenship)
+- **Team:** Ariel Jahn and Lucas Gabriel Stopassoli
 
 ---
 
-## 🚀 Como Executar
+## ✨ Key Features
+
+1. **Welcome & Quick Sign-In (`WelcomeScreen`)**:
+   - Simplified access (Log In, Sign Up, or Guest/Demo mode).
+2. **Community Feed (`HomeRequestsScreen` — `Home` Tab)**:
+   - Text search by neighborhood, species, or need.
+   - Quick category filters (`All`, `💧 Water`, `🥣 Food`, `🏠 Shelter`, `🚨 Urgent`, `✓ Completed`) and city filter.
+3. **Lifecycle & Assistance (`RequestDetailScreen`)**:
+   - Clear statuses: **`Open`**, **`In Progress`**, and **`Completed`**.
+   - **"I Want to Help This Animal"** workflow logging the volunteer's commitment along with a direct **WhatsApp** contact button.
+4. **My Actions (`MyActionsScreen` — `Requests` Tab)**:
+   - **Helping** and **Created by Me** sub-tabs.
+5. **New Request Registration (`NewRequestScreen` — `New` Tab)**:
+   - Multiple needs (`Water`, `Food`, `Shelter`, `Rescue/Care`) and Urgency Levels (`Normal`, `High`, `Critical`).
+   - **Smart Location**: Pre-configured official neighborhoods of **Rio do Sul - SC** + integration with the **official IBGE API** covering all municipalities in Santa Catarina.
+   - Optional photo capture via Camera or Gallery (`image_picker`).
+6. **Guide & My Area (`ProfileGuideScreen` — `My Area` Tab)**:
+   - Persistent Theme selector (`☀️ Light`, `🌙 Dark`, `📱 System`) featuring an earthy/terracotta color palette.
+   - Quick Safe Approach Guide and Useful Contacts (APAD Rio do Sul, City Hall/Animal Welfare, Fire Department 193, Military Police 190).
+
+---
+
+## 🚀 How to Run
 
 ```bash
 flutter pub get
