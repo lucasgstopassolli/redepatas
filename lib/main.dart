@@ -3,11 +3,14 @@ import 'package:provider/provider.dart';
 
 import 'controllers/auth_controller.dart';
 import 'controllers/help_request_controller.dart';
+import 'controllers/ong_controller.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_tokens.dart';
 import 'core/theme/theme_controller.dart';
 import 'repositories/i_help_request_repository.dart';
+import 'repositories/i_ong_repository.dart';
 import 'repositories/sqlite_help_repository.dart';
+import 'repositories/sqlite_ong_repository.dart';
 import 'ui/screens/main_shell_screen.dart';
 import 'ui/screens/onboarding_screen.dart';
 import 'ui/screens/welcome_screen.dart';
@@ -16,18 +19,24 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   final IHelpRequestRepository repository = SqliteHelpRepository();
+  final IOngRepository ongRepository = SqliteOngRepository();
 
   runApp(
-    RedePatasApp(repository: repository),
+    RedePatasApp(
+      repository: repository,
+      ongRepository: ongRepository,
+    ),
   );
 }
 
 class RedePatasApp extends StatelessWidget {
   final IHelpRequestRepository repository;
+  final IOngRepository? ongRepository;
 
   const RedePatasApp({
     super.key,
     required this.repository,
+    this.ongRepository,
   });
 
   @override
@@ -38,6 +47,9 @@ class RedePatasApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(
           create: (_) => HelpRequestController(repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => OngController(ongRepository ?? SqliteOngRepository()),
         ),
       ],
       child: Selector<ThemeController, ThemeMode>(
