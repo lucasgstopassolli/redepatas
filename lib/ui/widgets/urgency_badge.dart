@@ -20,60 +20,61 @@ class UrgencyBadge extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final semantic =
+        theme.extension<AppSemanticColors>() ?? AppSemanticColors.light;
 
     final (Color bg, Color fg, String text) = switch (urgency) {
       UrgencyLevel.critical => (
-          isDark
-              ? AppTheme.urgencyCriticalBgDark
-              : AppTheme.urgencyCriticalBgLight,
-          isDark ? AppTheme.criticalUrgencyDark : AppTheme.criticalUrgency,
+          semantic.urgencyCriticalBg,
+          semantic.urgencyCriticalFg,
           'Crítica',
         ),
       UrgencyLevel.high => (
-          isDark ? AppTheme.urgencyHighBgDark : AppTheme.urgencyHighBgLight,
-          isDark ? AppTheme.urgencyHighTextDark : AppTheme.urgencyHighTextLight,
+          semantic.urgencyHighBg,
+          semantic.urgencyHighFg,
           'Alta',
         ),
       UrgencyLevel.normal => (
-          isDark
-              ? AppTheme.darkSurfaceContainer
-              : AppTheme.lightSurfaceContainer,
-          isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText,
+          theme.colorScheme.surfaceContainer,
+          theme.colorScheme.onSurfaceVariant,
           'Normal',
         ),
     };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillRadius,
-        border: urgency == UrgencyLevel.critical
-            ? Border.all(color: fg.withValues(alpha: 0.3), width: 1)
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(
+    return Semantics(
+      label: 'Urgência $text',
+      child: AnimatedContainer(
+        duration: AppMotion.duration(context, AppMotion.fast),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: AppRadius.pillRadius,
+          border: urgency == UrgencyLevel.critical
+              ? Border.all(color: fg.withValues(alpha: 0.35), width: 1)
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              urgency == UrgencyLevel.critical
+                  ? Icons.priority_high_rounded
+                  : Icons.warning_amber_rounded,
+              size: 15,
               color: fg,
-              shape: BoxShape.circle,
             ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: TextStyle(
-              color: fg,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: TextStyle(
+                color: fg,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

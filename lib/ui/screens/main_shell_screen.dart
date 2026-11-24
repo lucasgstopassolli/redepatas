@@ -17,47 +17,53 @@ class MainShellScreen extends StatefulWidget {
 
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
+  final List<bool> _visited = [true, false, false, false, false];
 
   void _navigateToTab(int index) {
+    if (_currentIndex == index) return;
     setState(() {
       _currentIndex = index;
+      _visited[index] = true;
     });
+  }
+
+  Widget _buildTab(int index) {
+    if (!_visited[index]) return const SizedBox.shrink();
+    return switch (index) {
+      0 => HomeRequestsScreen(onNewRequestTap: () => _navigateToTab(2)),
+      1 => const SearchRequestsScreen(),
+      2 => NewRequestScreen(onRequestCreated: () => _navigateToTab(0)),
+      3 => const MyActionsScreen(),
+      4 => const ProfileGuideScreen(),
+      _ => const SizedBox.shrink(),
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      HomeRequestsScreen(onNewRequestTap: () => _navigateToTab(2)),
-      const SearchRequestsScreen(),
-      NewRequestScreen(
-        onRequestCreated: () => _navigateToTab(0),
-      ),
-      const MyActionsScreen(),
-      const ProfileGuideScreen(),
-    ];
-
     return Scaffold(
       extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
-        children: screens,
+        children: List.generate(5, _buildTab),
       ),
-      bottomNavigationBar: _FloatingPillNavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: _navigateToTab,
+      bottomNavigationBar: RepaintBoundary(
+        child: _FloatingPillNavigationBar(
+          selectedIndex: _currentIndex,
+          onDestinationSelected: _navigateToTab,
+        ),
       ),
     );
   }
 }
 
 class _FloatingPillNavigationBar extends StatelessWidget {
-  // Geometria concêntrica exata:
-  // Diâmetro do círculo interno = 48px (raio = 24px)
-  // Padding interno uniforme em todos os lados = 8px
+  // Geometria concêntrica:
+  // Diâmetro do item = 56px (raio = 28px)
+  // Padding interno uniforme = 8px
   // Borda = 1px
-  // Altura total da barra = 48 + (8 * 2) + (1 * 2) = 66px
-  // Raio da pílula externa = 66 / 2 = 33px (24 + 8 + 1 = 33px)
-  static const double _itemDiameter = 48.0;
+  // Altura total = 56 + 16 + 2 = 74px -> Raio externo = 37px
+  static const double _itemDiameter = AppSizes.navItem;
   static const double _barPadding = 8.0;
   static const double _borderWidth = 1.0;
   static const double _barHeight =
@@ -75,22 +81,23 @@ class _FloatingPillNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final semantic =
+        theme.extension<AppSemanticColors>() ?? AppSemanticColors.light;
 
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
+          AppSpacing.md,
           0,
-          AppSpacing.lg,
+          AppSpacing.md,
           AppSpacing.md,
         ),
         child: Align(
           alignment: Alignment.bottomCenter,
           heightFactor: 1.0,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 480),
             child: Container(
               height: _barHeight,
               padding: const EdgeInsets.all(_barPadding),
@@ -103,7 +110,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.38 : 0.10),
+                    color: semantic.navShadow,
                     blurRadius: 20,
                     offset: const Offset(0, 6),
                   ),
@@ -112,7 +119,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _CircularNavItem(
+                  _PillNavItem(
                     dimension: _itemDiameter,
                     icon: Icons.home_outlined,
                     selectedIcon: Icons.home_rounded,
@@ -120,7 +127,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
                     isSelected: selectedIndex == 0,
                     onTap: () => onDestinationSelected(0),
                   ),
-                  _CircularNavItem(
+                  _PillNavItem(
                     dimension: _itemDiameter,
                     icon: Icons.search_rounded,
                     selectedIcon: Icons.search_rounded,
@@ -134,7 +141,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
                     isSelected: selectedIndex == 2,
                     onTap: () => onDestinationSelected(2),
                   ),
-                  _CircularNavItem(
+                  _PillNavItem(
                     dimension: _itemDiameter,
                     icon: Icons.list_alt_outlined,
                     selectedIcon: Icons.list_alt_rounded,
@@ -142,7 +149,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
                     isSelected: selectedIndex == 3,
                     onTap: () => onDestinationSelected(3),
                   ),
-                  _CircularNavItem(
+                  _PillNavItem(
                     dimension: _itemDiameter,
                     icon: Icons.person_outline_rounded,
                     selectedIcon: Icons.person_rounded,
@@ -160,7 +167,7 @@ class _FloatingPillNavigationBar extends StatelessWidget {
   }
 }
 
-class _CircularNavItem extends StatelessWidget {
+class _PillNavItem extends StatelessWidget {
   final double dimension;
   final IconData icon;
   final IconData selectedIcon;
@@ -168,7 +175,7 @@ class _CircularNavItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _CircularNavItem({
+  const _PillNavItem({
     required this.dimension,
     required this.icon,
     required this.selectedIcon,
@@ -180,29 +187,61 @@ class _CircularNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
     final activeColor = theme.colorScheme.primary;
+    final inactiveColor = theme.colorScheme.onSurfaceVariant;
 
-    return Tooltip(
-      message: tooltip,
-      child: SizedBox.square(
-        dimension: dimension,
+    return Semantics(
+      label: tooltip,
+      button: true,
+      selected: isSelected,
+      child: Tooltip(
+        message: tooltip,
         child: Material(
-          color: isSelected
-              ? theme.colorScheme.surfaceContainer
-              : Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
+          color: Colors.transparent,
           child: InkWell(
             onTap: onTap,
-            customBorder: const CircleBorder(),
-            child: Center(
-              child: Icon(
-                isSelected ? selectedIcon : icon,
-                size: 22,
-                color: isSelected ? activeColor : secondaryTextColor,
+            borderRadius: BorderRadius.circular(dimension / 2),
+            child: AnimatedContainer(
+              duration: AppMotion.duration(context, AppMotion.normal),
+              curve: AppMotion.curve,
+              height: dimension,
+              constraints: BoxConstraints(minWidth: dimension),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSelected ? 14 : 0,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? theme.colorScheme.surfaceContainer
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(dimension / 2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    size: AppSizes.iconLg,
+                    color: isSelected ? activeColor : inactiveColor,
+                  ),
+                  AnimatedSize(
+                    duration: AppMotion.duration(context, AppMotion.normal),
+                    curve: AppMotion.curve,
+                    child: isSelected
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 6),
+                            child: Text(
+                              tooltip,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: activeColor,
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
               ),
             ),
           ),
@@ -228,30 +267,34 @@ class _CenterCircularActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final bgColor = isSelected
         ? theme.colorScheme.onSurface
         : theme.colorScheme.primary;
     final fgColor = isSelected
         ? theme.colorScheme.surface
-        : (isDark ? AppTheme.darkBackground : Colors.white);
+        : theme.colorScheme.onPrimary;
 
-    return Tooltip(
-      message: tooltip,
-      child: SizedBox.square(
-        dimension: dimension,
-        child: Material(
-          color: bgColor,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            customBorder: const CircleBorder(),
-            child: Center(
-              child: Icon(
-                Icons.add_rounded,
-                size: 24,
-                color: fgColor,
+    return Semantics(
+      label: 'Novo pedido',
+      button: true,
+      selected: isSelected,
+      child: Tooltip(
+        message: tooltip,
+        child: SizedBox.square(
+          dimension: dimension,
+          child: Material(
+            color: bgColor,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              customBorder: const CircleBorder(),
+              child: Center(
+                child: Icon(
+                  Icons.add_rounded,
+                  size: 30,
+                  color: fgColor,
+                ),
               ),
             ),
           ),

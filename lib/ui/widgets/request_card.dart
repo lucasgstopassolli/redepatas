@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 import 'status_badge.dart';
@@ -11,121 +10,128 @@ import 'urgency_badge.dart';
 class RequestCard extends StatelessWidget {
   final HelpRequestModel request;
   final VoidCallback onTap;
+  final String? distanceLabel;
 
   const RequestCard({
     super.key,
     required this.request,
     required this.onTap,
+    this.distanceLabel,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _AnimalAvatarThumbnail(
-                species: request.species,
-                photoPath: request.photoPath,
-                size: 56,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            request.title,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (request.urgency != UrgencyLevel.normal) ...[
-                          const SizedBox(width: 6),
-                          UrgencyBadge(urgency: request.urgency),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      request.needsSummary,
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.place_outlined,
-                          size: 14,
-                          color: secondaryTextColor,
-                        ),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          child: Text(
-                            '${request.neighborhood} • ${request.city}',
-                            style: TextStyle(
-                              color: secondaryTextColor,
-                              fontSize: 12.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        StatusBadge(status: request.status, compact: true),
-                        if (request.status == RequestStatus.inProgress &&
-                            request.helperName != null)
-                          Text(
-                            'Por ${request.helperName}',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: secondaryTextColor,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
+    return RepaintBoundary(
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Hero(
+                  tag: 'request_photo_${request.id}',
+                  child: _AnimalAvatarThumbnail(
+                    species: request.species,
+                    photoPath: request.photoPath,
+                    size: 64,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: secondaryTextColor.withValues(alpha: 0.5),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              request.title,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (request.urgency != UrgencyLevel.normal) ...[
+                            const SizedBox(width: 6),
+                            UrgencyBadge(urgency: request.urgency),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        request.needsSummary,
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.place_outlined,
+                            size: 16,
+                            color: secondaryTextColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              distanceLabel != null
+                                  ? '${request.neighborhood} • ${request.city} ($distanceLabel)'
+                                  : '${request.neighborhood} • ${request.city}',
+                              style: TextStyle(
+                                color: secondaryTextColor,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          StatusBadge(status: request.status, compact: true),
+                          if (request.status == RequestStatus.inProgress &&
+                              request.helperName != null)
+                            Text(
+                              'Por ${request.helperName}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: secondaryTextColor,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: secondaryTextColor,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -158,6 +164,7 @@ class _AnimalAvatarThumbnail extends StatelessWidget {
             photoPath!,
             width: size,
             height: size,
+            cacheWidth: 160,
             fit: BoxFit.cover,
           ),
         );
@@ -170,6 +177,7 @@ class _AnimalAvatarThumbnail extends StatelessWidget {
             file,
             width: size,
             height: size,
+            cacheWidth: 160,
             fit: BoxFit.cover,
           ),
         );
@@ -190,7 +198,7 @@ class _AnimalAvatarThumbnail extends StatelessWidget {
       child: Center(
         child: Icon(
           species.icon,
-          size: 24,
+          size: 28,
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),

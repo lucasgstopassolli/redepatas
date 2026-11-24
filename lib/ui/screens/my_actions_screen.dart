@@ -45,11 +45,11 @@ class MyActionsScreen extends StatelessWidget {
             indicatorWeight: 2,
             indicatorSize: TabBarIndicatorSize.tab,
             labelStyle: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
             ),
             unselectedLabelStyle: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 15,
               fontWeight: FontWeight.w500,
             ),
             tabs: [

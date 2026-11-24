@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_theme.dart';
-
 /// Cabeçalho sóbrio de seção em caixa alta com estilo minimalista.
 class SectionHeader extends StatelessWidget {
   final String title;
@@ -10,24 +8,21 @@ class SectionHeader extends StatelessWidget {
   const SectionHeader({
     super.key,
     required this.title,
-    this.padding = const EdgeInsets.only(bottom: 8, top: 4),
+    this.padding = const EdgeInsets.only(bottom: 10, top: 4),
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final color =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
-
+    final theme = Theme.of(context);
     return Padding(
       padding: padding,
       child: Text(
         title.toUpperCase(),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
+        style: theme.textTheme.labelSmall?.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
           letterSpacing: 0.8,
-          color: color,
+          color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
     );

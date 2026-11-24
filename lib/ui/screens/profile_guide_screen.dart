@@ -116,27 +116,27 @@ class ProfileGuideScreen extends StatelessWidget {
                                   '${user?.defaultCity ?? "Rio do Sul"} - SC',
                                   style: TextStyle(
                                     color: secondaryTextColor,
-                                    fontSize: 13,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ],
                             ),
                             if (user?.phone != null &&
                                 user!.phone!.trim().isNotEmpty) ...[
-                              const SizedBox(height: 1),
+                              const SizedBox(height: 2),
                               Row(
                                 children: [
                                   Icon(
                                     Icons.phone_outlined,
-                                    size: 13,
+                                    size: 15,
                                     color: secondaryTextColor,
                                   ),
-                                  const SizedBox(width: 3),
+                                  const SizedBox(width: 4),
                                   Text(
                                     user.phone!,
                                     style: TextStyle(
                                       color: secondaryTextColor,
-                                      fontSize: 13,
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
@@ -246,35 +246,42 @@ class ProfileGuideScreen extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     'Escolha entre tema claro, escuro ou sincronizado com o sistema.',
-                    style: TextStyle(color: secondaryTextColor, fontSize: 13),
+                    style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SegmentedButton<ThemeMode>(
-                      showSelectedIcon: false,
-                      segments: const [
-                        ButtonSegment(
-                          value: ThemeMode.light,
-                          icon: Icon(Icons.light_mode_outlined, size: 22),
-                          label: null,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ThemeOptionCard(
+                          label: 'Claro',
+                          icon: Icons.light_mode_outlined,
+                          selected: themeController.themeMode == ThemeMode.light,
+                          onTap: () =>
+                              themeController.setThemeMode(ThemeMode.light),
                         ),
-                        ButtonSegment(
-                          value: ThemeMode.dark,
-                          icon: Icon(Icons.dark_mode_outlined, size: 22),
-                          label: null,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: _ThemeOptionCard(
+                          label: 'Escuro',
+                          icon: Icons.dark_mode_outlined,
+                          selected: themeController.themeMode == ThemeMode.dark,
+                          onTap: () =>
+                              themeController.setThemeMode(ThemeMode.dark),
                         ),
-                        ButtonSegment(
-                          value: ThemeMode.system,
-                          icon: Icon(Icons.settings_suggest_outlined, size: 22),
-                          label: null,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Expanded(
+                        child: _ThemeOptionCard(
+                          label: 'Sistema',
+                          icon: Icons.settings_suggest_outlined,
+                          selected:
+                              themeController.themeMode == ThemeMode.system,
+                          onTap: () =>
+                              themeController.setThemeMode(ThemeMode.system),
                         ),
-                      ],
-                      selected: {themeController.themeMode},
-                      onSelectionChanged: (modes) {
-                        themeController.setThemeMode(modes.first);
-                      },
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -314,7 +321,7 @@ class ProfileGuideScreen extends StatelessWidget {
                       '• Utilize potes plásticos limpos e sem bordas cortantes (evite latas abertas).\n'
                       '• Posicione os recipientes em local sombreado e afastado do fluxo de veículos.\n'
                       '• Aproxime-se devagar, sem movimentos bruscos, permitindo que o animal sinta segurança.',
-                      style: TextStyle(height: 1.45, fontSize: 13.5),
+                      style: TextStyle(height: 1.45, fontSize: 15),
                     ),
                   ],
                 ),
@@ -335,7 +342,7 @@ class ProfileGuideScreen extends StatelessWidget {
                     Text(
                       '• Animais com dor podem reagir por medo. Não tente forçar a captura sem guia, toalha grossa ou caixa de transporte.\n'
                       '• Sinalize o pedido no RedePatas com urgência "Crítica" e acione imediatamente os órgãos de resgate ou proteção abaixo.',
-                      style: TextStyle(height: 1.45, fontSize: 13.5),
+                      style: TextStyle(height: 1.45, fontSize: 15),
                     ),
                   ],
                 ),
@@ -356,7 +363,7 @@ class ProfileGuideScreen extends StatelessWidget {
                     Text(
                       '• Em períodos de chuva forte ou cheias em Rio do Sul, priorize abrigar o animal em áreas altas e cobertas.\n'
                       '• Caixas de papelão revestidas com plástico e cobertores secos ajudam a evitar hipotermia.',
-                      style: TextStyle(height: 1.45, fontSize: 13.5),
+                      style: TextStyle(height: 1.45, fontSize: 15),
                     ),
                   ],
                 ),
@@ -546,16 +553,16 @@ class _EmergencyContactCard extends StatelessWidget {
                     title,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 15,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 14,
                       color: secondaryTextColor,
-                      height: 1.3,
+                      height: 1.35,
                     ),
                   ),
                 ],
@@ -568,13 +575,89 @@ class _EmergencyContactCard extends StatelessWidget {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               },
               style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 34),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                minimumSize: const Size(0, AppSizes.tapMin),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                textStyle:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
               child: Text(actionLabel),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeOptionCard extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ThemeOptionCard({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: 'Tema $label',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: AppRadius.controlRadius,
+          child: AnimatedContainer(
+            duration: AppMotion.duration(context, const Duration(milliseconds: 200)),
+            curve: AppMotion.curve,
+            constraints: const BoxConstraints(minHeight: 76),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: selected
+                  ? theme.colorScheme.surfaceContainer
+                  : theme.colorScheme.surface,
+              borderRadius: AppRadius.controlRadius,
+              border: Border.all(
+                color: selected
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.outline,
+                width: selected ? 2 : 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 26,
+                  color: selected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                    color: selected
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

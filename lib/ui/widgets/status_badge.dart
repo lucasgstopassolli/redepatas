@@ -16,61 +16,55 @@ class StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final semantic =
+        Theme.of(context).extension<AppSemanticColors>() ?? AppSemanticColors.light;
 
     final (Color bg, Color fg) = switch (status) {
-      RequestStatus.open => (
-          isDark ? AppTheme.statusOpenBgDark : AppTheme.statusOpenBgLight,
-          isDark ? AppTheme.statusOpenTextDark : AppTheme.statusOpenText,
-        ),
+      RequestStatus.open => (semantic.statusOpenBg, semantic.statusOpenFg),
       RequestStatus.inProgress => (
-          isDark
-              ? AppTheme.statusInProgressBgDark
-              : AppTheme.statusInProgressBgLight,
-          isDark
-              ? AppTheme.statusInProgressTextDark
-              : AppTheme.statusInProgressText,
+          semantic.statusInProgressBg,
+          semantic.statusInProgressFg,
         ),
       RequestStatus.completed => (
-          isDark
-              ? AppTheme.statusCompletedBgDark
-              : AppTheme.statusCompletedBgLight,
-          isDark
-              ? AppTheme.statusCompletedTextDark
-              : AppTheme.statusCompletedText,
+          semantic.statusCompletedBg,
+          semantic.statusCompletedFg,
         ),
     };
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 3 : 5,
-      ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: AppRadius.pillRadius,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: fg,
-              shape: BoxShape.circle,
+    return Semantics(
+      label: 'Status: ${status.label}',
+      child: AnimatedContainer(
+        duration: AppMotion.duration(context, AppMotion.fast),
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 10 : 12,
+          vertical: compact ? 5 : 6,
+        ),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: AppRadius.pillRadius,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 7,
+              height: 7,
+              decoration: BoxDecoration(
+                color: fg,
+                shape: BoxShape.circle,
+              ),
             ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            status.label,
-            style: TextStyle(
-              color: fg,
-              fontSize: compact ? 11.5 : 12,
-              fontWeight: FontWeight.w500,
+            const SizedBox(width: 6),
+            Text(
+              status.label,
+              style: TextStyle(
+                color: fg,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
