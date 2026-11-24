@@ -121,55 +121,58 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       itemBuilder: (context, index) {
                         final page = _pages[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppSpacing.lg,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 144,
-                                height: 144,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainer,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: theme.colorScheme.outline,
-                                    width: 1.5,
+                        return Center(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 120,
+                                  height: 120,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.surfaceContainer,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: theme.colorScheme.outline,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    page.icon,
+                                    size: 60,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
-                                child: Icon(
-                                  page.icon,
-                                  size: 72,
-                                  color: theme.colorScheme.primary,
+                                const SizedBox(height: AppSpacing.lg),
+                                Text(
+                                  page.eyebrow,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    letterSpacing: 1.0,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                              ),
-                              const SizedBox(height: AppSpacing.xl),
-                              Text(
-                                page.eyebrow,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  letterSpacing: 1.0,
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  page.title,
+                                  style: theme.textTheme.headlineSmall,
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                page.title,
-                                style: theme.textTheme.headlineSmall,
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              Text(
-                                page.description,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  height: 1.5,
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  page.description,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         );
                       },

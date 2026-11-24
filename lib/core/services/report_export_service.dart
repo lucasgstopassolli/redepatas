@@ -121,13 +121,13 @@ class ReportExportService {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Text(
-                  'Relatório RedePatas — $orgName',
+                  'Relatorio RedePatas - $orgName',
                   style: pw.TextStyle(
                     fontSize: 18,
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
-                pw.Text('Período: $periodLabel'),
+                pw.Text('Periodo: $periodLabel'),
               ],
             ),
           ),
@@ -142,11 +142,11 @@ class ReportExportService {
             children: [
               _pdfStat('Abertos', '${metrics.openCount}'),
               _pdfStat('Em atendimento', '${metrics.inProgressCount}'),
-              _pdfStat('Concluídos', '${metrics.completedCount}'),
+              _pdfStat('Concluidos', '${metrics.completedCount}'),
               _pdfStat(
-                'Tempo médio',
+                'Tempo medio',
                 metrics.avgResolutionHours == null
-                    ? '—'
+                    ? '-'
                     : '${metrics.avgResolutionHours!.toStringAsFixed(1)} h',
               ),
             ],
@@ -158,7 +158,7 @@ class ReportExportService {
           ),
           pw.SizedBox(height: 8),
           pw.TableHelper.fromTextArray(
-            headers: ['Animal', 'Bairro', 'Urgência', 'Status', 'Voluntário'],
+            headers: ['Animal', 'Bairro', 'Urgencia', 'Status', 'Voluntario'],
             data: requests
                 .take(40)
                 .map(
@@ -167,7 +167,7 @@ class ReportExportService {
                     '${r.neighborhood} - ${r.city}',
                     r.urgency.label,
                     r.status.label,
-                    r.helperName ?? '—',
+                    r.helperName ?? '-',
                   ],
                 )
                 .toList(),

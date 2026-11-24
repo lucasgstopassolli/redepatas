@@ -16,12 +16,12 @@
     "framework": "Flutter (Dart SDK ^3.13.4), useMaterial3: true",
     "state_management": "provider (ChangeNotifier + MultiProvider/Consumer)",
     "persistence": {
-      "requests": "sqflite (mobile) / sqflite_common_ffi (Linux, Windows, macOS) — arquivo redepatas_v1.db, tabela help_requests, schema version 1, sem migrations",
-      "web": "SQLite desativado em kIsWeb; usa lista em memória (_webMemoryFallback) semeada com os mesmos 3 seeds. Dados perdem-se ao recarregar.",
-      "session_and_theme": "shared_preferences"
+      "requests": "sqflite (mobile) / sqflite_common_ffi (Linux, Windows, macOS) — arquivo redepatas_v1.db gerenciado por AppDatabase (lib/core/database/app_database.dart), schema version 2 com migração segura onUpgrade v1->v2. Tabelas: help_requests, organizations, volunteers, case_updates, shelter_animals, adoption_interests, events, event_signups, campaigns, donations.",
+      "web": "SQLite desativado em kIsWeb; repositórios usam fallback em memória semeado com AppDatabase.initialSeed*().",
+      "session_and_theme": "shared_preferences (usuário + papel, tema, onboarding, dicas)"
     },
-    "network": "http — apenas API pública do IBGE (lista de municípios de SC), com timeout 8s e fallback offline",
-    "other_packages": ["image_picker (câmera/galeria)", "url_launcher (WhatsApp/telefone)", "intl", "google_fonts (Inter)", "path", "cupertino_icons"],
+    "network": "http — API pública do IBGE (municípios de SC) com timeout 8s e fallback offline; tiles OSM no flutter_map",
+    "other_packages": ["image_picker", "url_launcher", "intl", "path", "cupertino_icons", "flutter_map", "latlong2", "geolocator", "share_plus", "pdf", "printing", "csv", "flutter_local_notifications", "fl_chart", "uuid", "path_provider"],
     "dev": ["flutter_lints", "flutter_launcher_icons (assets/icon/icon.png)"],
     "platforms": ["android", "ios", "web", "linux", "macos", "windows"],
     "backend": "Nenhum. 100% local/offline. Repositório abstrato permite trocar por Firebase/Supabase futuramente."
