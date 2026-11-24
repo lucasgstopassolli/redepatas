@@ -41,11 +41,26 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tabDuration = AppMotion.duration(context, AppMotion.normal);
+
     return Scaffold(
       extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(5, _buildTab),
+      body: Stack(
+        children: List.generate(5, (index) {
+          final active = _currentIndex == index;
+          return Offstage(
+            offstage: !active,
+            child: IgnorePointer(
+              ignoring: !active,
+              child: AnimatedOpacity(
+                opacity: active ? 1.0 : 0.0,
+                duration: tabDuration,
+                curve: AppMotion.curve,
+                child: _buildTab(index),
+              ),
+            ),
+          );
+        }),
       ),
       bottomNavigationBar: RepaintBoundary(
         child: _FloatingPillNavigationBar(
@@ -66,9 +81,6 @@ class _FloatingPillNavigationBar extends StatelessWidget {
   static const double _itemDiameter = AppSizes.navItem;
   static const double _barPadding = 8.0;
   static const double _borderWidth = 1.0;
-  static const double _barHeight =
-      _itemDiameter + (_barPadding * 2) + (_borderWidth * 2);
-  static const double _barRadius = _barHeight / 2;
 
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
@@ -98,67 +110,80 @@ class _FloatingPillNavigationBar extends StatelessWidget {
           heightFactor: 1.0,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: Container(
-              height: _barHeight,
-              padding: const EdgeInsets.all(_barPadding),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(_barRadius),
-                border: Border.all(
-                  color: theme.colorScheme.outline,
-                  width: _borderWidth,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: semantic.navShadow,
-                    blurRadius: 20,
-                    offset: const Offset(0, 6),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow = constraints.maxWidth < 340;
+                final dim = narrow ? AppSizes.tapMin : _itemDiameter;
+                final barHeight = dim + (_barPadding * 2) + (_borderWidth * 2);
+                final showLabel = constraints.maxWidth >= 380;
+
+                return Container(
+                  height: barHeight,
+                  padding: const EdgeInsets.all(_barPadding),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(barHeight / 2),
+                    border: Border.all(
+                      color: theme.colorScheme.outline,
+                      width: _borderWidth,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: semantic.navShadow,
+                        blurRadius: 20,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _PillNavItem(
-                    dimension: _itemDiameter,
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home_rounded,
-                    tooltip: 'Início',
-                    isSelected: selectedIndex == 0,
-                    onTap: () => onDestinationSelected(0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _PillNavItem(
+                        dimension: dim,
+                        icon: Icons.home_outlined,
+                        selectedIcon: Icons.home_rounded,
+                        tooltip: 'Início',
+                        isSelected: selectedIndex == 0,
+                        showLabel: showLabel,
+                        onTap: () => onDestinationSelected(0),
+                      ),
+                      _PillNavItem(
+                        dimension: dim,
+                        icon: Icons.search_rounded,
+                        selectedIcon: Icons.search_rounded,
+                        tooltip: 'Buscar',
+                        isSelected: selectedIndex == 1,
+                        showLabel: showLabel,
+                        onTap: () => onDestinationSelected(1),
+                      ),
+                      _CenterCircularActionButton(
+                        dimension: dim,
+                        tooltip: 'Novo',
+                        isSelected: selectedIndex == 2,
+                        onTap: () => onDestinationSelected(2),
+                      ),
+                      _PillNavItem(
+                        dimension: dim,
+                        icon: Icons.list_alt_outlined,
+                        selectedIcon: Icons.list_alt_rounded,
+                        tooltip: 'Pedidos',
+                        isSelected: selectedIndex == 3,
+                        showLabel: showLabel,
+                        onTap: () => onDestinationSelected(3),
+                      ),
+                      _PillNavItem(
+                        dimension: dim,
+                        icon: Icons.person_outline_rounded,
+                        selectedIcon: Icons.person_rounded,
+                        tooltip: 'Minha área',
+                        isSelected: selectedIndex == 4,
+                        showLabel: showLabel,
+                        onTap: () => onDestinationSelected(4),
+                      ),
+                    ],
                   ),
-                  _PillNavItem(
-                    dimension: _itemDiameter,
-                    icon: Icons.search_rounded,
-                    selectedIcon: Icons.search_rounded,
-                    tooltip: 'Buscar',
-                    isSelected: selectedIndex == 1,
-                    onTap: () => onDestinationSelected(1),
-                  ),
-                  _CenterCircularActionButton(
-                    dimension: _itemDiameter,
-                    tooltip: 'Novo',
-                    isSelected: selectedIndex == 2,
-                    onTap: () => onDestinationSelected(2),
-                  ),
-                  _PillNavItem(
-                    dimension: _itemDiameter,
-                    icon: Icons.list_alt_outlined,
-                    selectedIcon: Icons.list_alt_rounded,
-                    tooltip: 'Pedidos',
-                    isSelected: selectedIndex == 3,
-                    onTap: () => onDestinationSelected(3),
-                  ),
-                  _PillNavItem(
-                    dimension: _itemDiameter,
-                    icon: Icons.person_outline_rounded,
-                    selectedIcon: Icons.person_rounded,
-                    tooltip: 'Minha área',
-                    isSelected: selectedIndex == 4,
-                    onTap: () => onDestinationSelected(4),
-                  ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ),
@@ -173,6 +198,7 @@ class _PillNavItem extends StatelessWidget {
   final IconData selectedIcon;
   final String tooltip;
   final bool isSelected;
+  final bool showLabel;
   final VoidCallback onTap;
 
   const _PillNavItem({
@@ -181,6 +207,7 @@ class _PillNavItem extends StatelessWidget {
     required this.selectedIcon,
     required this.tooltip,
     required this.isSelected,
+    this.showLabel = true,
     required this.onTap,
   });
 
@@ -189,6 +216,7 @@ class _PillNavItem extends StatelessWidget {
     final theme = Theme.of(context);
     final activeColor = theme.colorScheme.primary;
     final inactiveColor = theme.colorScheme.onSurfaceVariant;
+    final expanded = isSelected && showLabel;
 
     return Semantics(
       label: tooltip,
@@ -207,7 +235,7 @@ class _PillNavItem extends StatelessWidget {
               height: dimension,
               constraints: BoxConstraints(minWidth: dimension),
               padding: EdgeInsets.symmetric(
-                horizontal: isSelected ? 14 : 0,
+                horizontal: expanded ? 14 : 0,
               ),
               decoration: BoxDecoration(
                 color: isSelected
@@ -227,7 +255,7 @@ class _PillNavItem extends StatelessWidget {
                   AnimatedSize(
                     duration: AppMotion.duration(context, AppMotion.normal),
                     curve: AppMotion.curve,
-                    child: isSelected
+                    child: expanded
                         ? Padding(
                             padding: const EdgeInsets.only(left: 6),
                             child: Text(

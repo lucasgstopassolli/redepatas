@@ -48,21 +48,25 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'RedePatas',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'RedePatas',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Text(
-                            'Rio do Sul e Alto Vale do Itajaí',
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                            Text(
+                              'Rio do Sul e Alto Vale do Itajaí',
+                              style: theme.textTheme.bodySmall,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

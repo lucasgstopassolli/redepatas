@@ -121,59 +121,88 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       },
                       itemBuilder: (context, index) {
                         final page = _pages[index];
-                        return Center(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.md,
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 120,
-                                  height: 120,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.surfaceContainer,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: theme.colorScheme.outline,
-                                      width: 1.5,
-                                    ),
+                        final disableAnims =
+                            MediaQuery.maybeOf(context)?.disableAnimations ??
+                                false;
+                        return AnimatedBuilder(
+                          animation: _pageController,
+                          builder: (context, child) {
+                            double delta = 0;
+                            if (!disableAnims &&
+                                _pageController.hasClients &&
+                                _pageController.position.haveDimensions) {
+                              delta = (_pageController.page ??
+                                      _currentPage.toDouble()) -
+                                  index;
+                            }
+                            final opacity =
+                                (1 - delta.abs() * 0.45).clamp(0.4, 1.0);
+                            final parallaxX = delta * 28;
+                            return Opacity(
+                              opacity: opacity,
+                              child: Center(
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: AppSpacing.md,
                                   ),
-                                  child: Icon(
-                                    page.icon,
-                                    size: 60,
-                                    color: theme.colorScheme.primary,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Transform.translate(
+                                        offset: Offset(parallaxX, 0),
+                                        child: Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            color: theme
+                                                .colorScheme.surfaceContainer,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: theme.colorScheme.outline,
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            page.icon,
+                                            size: 60,
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: AppSpacing.lg),
+                                      Text(
+                                        page.eyebrow,
+                                        style:
+                                            theme.textTheme.labelSmall?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          letterSpacing: 1.0,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      Text(
+                                        page.title,
+                                        style: theme.textTheme.headlineSmall,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Text(
+                                        page.description,
+                                        style:
+                                            theme.textTheme.bodyLarge?.copyWith(
+                                          color:
+                                              theme.colorScheme.onSurfaceVariant,
+                                          height: 1.5,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: AppSpacing.lg),
-                                Text(
-                                  page.eyebrow,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    letterSpacing: 1.0,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  page.title,
-                                  style: theme.textTheme.headlineSmall,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text(
-                                  page.description,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    height: 1.5,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

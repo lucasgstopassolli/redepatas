@@ -55,12 +55,20 @@ class StatusBadge extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              status.label,
-              style: TextStyle(
-                color: fg,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: AnimatedSwitcher(
+                duration: AppMotion.duration(context, AppMotion.fast),
+                child: Text(
+                  status.label,
+                  key: ValueKey(status),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: fg,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ],

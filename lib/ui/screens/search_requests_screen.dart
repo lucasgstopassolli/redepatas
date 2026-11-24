@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/help_request_controller.dart';
 import '../../core/constants/rio_do_sul_bairros.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 import '../widgets/empty_state.dart';
@@ -52,9 +51,7 @@ class _SearchRequestsScreenState extends State<SearchRequestsScreen> {
   Widget build(BuildContext context) {
     final controller = context.watch<HelpRequestController>();
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     final query = _searchController.text.trim().toLowerCase();
     final results = controller.allRequests.where((req) {

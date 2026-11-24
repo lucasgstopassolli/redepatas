@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../models/help_request_model.dart';
 import '../widgets/empty_state.dart';
@@ -16,9 +15,7 @@ class MyActionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     final auth = context.watch<AuthController>();
     final controller = context.watch<HelpRequestController>();

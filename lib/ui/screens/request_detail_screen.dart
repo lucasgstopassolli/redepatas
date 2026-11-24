@@ -36,9 +36,7 @@ class RequestDetailScreen extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
     final formattedDate =
         DateFormat('dd/MM/yyyy • HH:mm').format(request.createdAt);
 
@@ -801,9 +799,7 @@ class _DetailHeaderPhoto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     final path = request.photoPath;
     if (path != null && _hasValidPhoto(path)) {
@@ -949,9 +945,7 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -959,7 +953,7 @@ class _InfoRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
             color: secondaryTextColor,
           ),

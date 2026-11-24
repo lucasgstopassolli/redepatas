@@ -103,6 +103,26 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
     }
 
     return Scaffold(
+      floatingActionButton:
+          widget.onNewRequestTap != null && _viewMode == _HomeViewMode.list
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 92),
+                  child: FloatingActionButton.extended(
+                    heroTag: 'home_register_animal_fab',
+                    onPressed: widget.onNewRequestTap,
+                    backgroundColor: theme.colorScheme.primary,
+                    foregroundColor: theme.colorScheme.onPrimary,
+                    icon: const Icon(Icons.add_rounded, size: 24),
+                    label: const Text(
+                      'Registrar animal',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
       appBar: AppBar(
         title: const Text('RedePatas'),
         actions: [
@@ -134,12 +154,17 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                       color: theme.colorScheme.primary,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      controller.selectedCityFilter ?? 'Rio do Sul e região',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 110),
+                      child: Text(
+                        controller.selectedCityFilter ?? 'Rio do Sul e região',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: theme.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 2),
@@ -193,9 +218,12 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        'Resumo da região',
-                                        style: theme.textTheme.titleMedium,
+                                      Expanded(
+                                        child: Text(
+                                          'Resumo da região',
+                                          style: theme.textTheme.titleMedium,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                       if (auth.isOrganization)
                                         TextButton.icon(
@@ -431,17 +459,20 @@ class _HomeRequestsScreenState extends State<HomeRequestsScreen> {
                               ),
                             );
                           }
-                          return RequestCard(
-                            request: req,
-                            distanceLabel: distLabel,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) =>
-                                      RequestDetailScreen(requestId: req.id),
-                                ),
-                              );
-                            },
+                          return _StaggeredFadeSlide(
+                            index: index,
+                            child: RequestCard(
+                              request: req,
+                              distanceLabel: distLabel,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute<void>(
+                                    builder: (_) =>
+                                        RequestDetailScreen(requestId: req.id),
+                                  ),
+                                );
+                              },
+                            ),
                           );
                         },
                       ),
@@ -578,6 +609,8 @@ class _SummaryPill extends StatelessWidget {
           ),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
@@ -608,6 +641,39 @@ class _ShortcutChip extends StatelessWidget {
       avatar: Icon(icon, size: 18, color: theme.colorScheme.primary),
       label: Text(label),
       onPressed: onTap,
+    );
+  }
+}
+
+class _StaggeredFadeSlide extends StatelessWidget {
+  final int index;
+  final Widget child;
+
+  const _StaggeredFadeSlide({
+    required this.index,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disableAnims =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (disableAnims || index >= 8) return child;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 250 + (index * 30)),
+      curve: AppMotion.emphasized,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 16 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }

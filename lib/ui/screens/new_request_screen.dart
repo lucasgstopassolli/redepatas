@@ -10,7 +10,6 @@ import '../../controllers/ong_controller.dart';
 import '../../core/constants/rio_do_sul_bairros.dart';
 import '../../core/services/ibge_city_service.dart';
 import '../../core/services/location_service.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../models/case_update_model.dart';
 import '../../models/help_request_model.dart';
@@ -75,9 +74,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     return Scaffold(
       appBar: AppBar(
@@ -491,7 +488,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                               'Ajuda voluntários na localização do animal.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
-                                fontSize: 12.5,
+                                fontSize: 14,
                                 color: secondaryTextColor,
                               ),
                             ),
@@ -575,7 +572,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       Text(
                         'Rio do Sul possui bairros cadastrados. Outros municípios de SC são obtidos da API do IBGE.',
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           color: Theme.of(sheetContext).colorScheme.onSurfaceVariant,
                         ),
                       ),

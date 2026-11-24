@@ -63,6 +63,10 @@ class RedePatasApp extends StatelessWidget {
             themeMode: themeMode,
             themeAnimationDuration: AppMotion.normal,
             themeAnimationCurve: AppMotion.curve,
+            themeAnimationStyle: const AnimationStyle(
+              duration: AppMotion.normal,
+              curve: AppMotion.curve,
+            ),
             home: const _AuthGate(),
           );
         },

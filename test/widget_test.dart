@@ -481,4 +481,39 @@ void main() {
     final fallbackCities = await offlineService.fetchSantaCatarinaCities();
     expect(fallbackCities, containsAll(['Rio do Sul', 'Lontras', 'Ibirama', 'Taió']));
   });
+
+  testWidgets(
+      'Acessibilidade e QA (08): tela 360x640 e textScaler 1.3 sem overflow',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'redepatas_onboarding_done': true,
+    });
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(
+          size: Size(360, 640),
+          textScaler: TextScaler.linear(1.3),
+        ),
+        child: RedePatasApp(
+          repository: InMemoryHelpRepository(),
+          ongRepository: InMemoryOngRepository(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Toda ajuda conta.'), findsOneWidget);
+    final demoBtn = find.text('Entrar como Visitante / Demonstração');
+    await tester.ensureVisible(demoBtn);
+    await tester.pumpAndSettle();
+    await tester.tap(demoBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Registrar animal'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

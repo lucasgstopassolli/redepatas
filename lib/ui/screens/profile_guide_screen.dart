@@ -10,7 +10,6 @@ import '../../controllers/help_request_controller.dart';
 import '../../controllers/ong_controller.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/report_export_service.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../models/help_request_model.dart';
@@ -47,9 +46,7 @@ class ProfileGuideScreen extends StatelessWidget {
     final helpedCount = requestsController.myHelpingRequests(userId).length;
 
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     return Scaffold(
       appBar: AppBar(
@@ -780,9 +777,7 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryTextColor = Theme.of(context).brightness == Brightness.dark
-        ? AppTheme.darkSecondaryText
-        : AppTheme.lightSecondaryText;
+    final secondaryTextColor = Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Column(
       children: [
@@ -796,7 +791,7 @@ class _StatItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: secondaryTextColor),
+          style: TextStyle(fontSize: 14, color: secondaryTextColor),
         ),
       ],
     );
@@ -819,9 +814,7 @@ class _EmergencyContactCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final secondaryTextColor =
-        isDark ? AppTheme.darkSecondaryText : AppTheme.lightSecondaryText;
+    final secondaryTextColor = theme.colorScheme.onSurfaceVariant;
 
     return Card(
       child: Padding(
