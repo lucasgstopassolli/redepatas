@@ -6,12 +6,16 @@ import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
+import '../../controllers/ong_controller.dart';
 import '../../core/constants/rio_do_sul_bairros.dart';
 import '../../core/services/ibge_city_service.dart';
+import '../../core/services/location_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../models/case_update_model.dart';
 import '../../models/help_request_model.dart';
 import '../widgets/section_header.dart';
+import 'requests_map_screen.dart';
 
 class NewRequestScreen extends StatefulWidget {
   final VoidCallback? onRequestCreated;
@@ -39,6 +43,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   String _selectedCity = 'Rio do Sul';
   String _selectedRioDoSulBairro = bairrosRioDoSul.first;
   String? _photoPath;
+  double? _latitude;
+  double? _longitude;
+  bool _loadingLocation = false;
   bool _isSubmitting = false;
 
   bool get _isRioDoSul =>
@@ -103,9 +110,42 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
               const SizedBox(height: AppSpacing.xxs),
               Text(
                 'Informe dados claros para orientar quem puder ajudar.',
-                style: TextStyle(color: secondaryTextColor, fontSize: 14),
+                style: TextStyle(color: secondaryTextColor, fontSize: 15),
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
+
+              // Dica contextual na primeira vez (F3)
+              if (!context.watch<AuthController>().newRequestTipDismissed) ...[
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.sm),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.lightbulb_outline_rounded,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        const Expanded(
+                          child: Text(
+                            'Dica: informe um ponto de referência e, se puder, uma foto ou localização. Isso acelera o atendimento.',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Dispensar dica',
+                          icon: const Icon(Icons.close_rounded, size: 20),
+                          onPressed: () => context
+                              .read<AuthController>()
+                              .dismissNewRequestTip(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
+              const SizedBox(height: AppSpacing.xs),
 
               // 1. Espécie e Identificação
               const SectionHeader(title: 'Animal'),
@@ -331,6 +371,46 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                   hintText: 'Ex: 47999112233',
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
+
+              // 5.5 Localização no Mapa (F6 — opcional)
+              const SectionHeader(title: 'Localização no mapa (opcional)'),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _loadingLocation ? null : _captureCurrentLocation,
+                      icon: _loadingLocation
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.my_location_outlined),
+                      label: const Text('Minha localização'),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _pickLocationOnMap,
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('Marcar no mapa'),
+                    ),
+                  ),
+                ],
+              ),
+              if (_latitude != null && _longitude != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Ponto marcado: ${_latitude!.toStringAsFixed(4)}, ${_longitude!.toStringAsFixed(4)}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.lg),
 
               // 6. Foto do animal (opcional)
@@ -637,12 +717,50 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     }
   }
 
+  Future<void> _captureCurrentLocation() async {
+    setState(() => _loadingLocation = true);
+    final (point, error) = await LocationService().getCurrentPosition();
+    if (!mounted) return;
+    setState(() {
+      _loadingLocation = false;
+      if (point != null) {
+        _latitude = point.latitude;
+        _longitude = point.longitude;
+      }
+    });
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    }
+  }
+
+  Future<void> _pickLocationOnMap() async {
+    final result = await Navigator.of(context).push<LocationPoint>(
+      MaterialPageRoute<LocationPoint>(
+        builder: (_) => RequestsMapScreen(
+          isPickerMode: true,
+          initialPoint: _latitude != null && _longitude != null
+              ? LocationPoint(_latitude!, _longitude!)
+              : null,
+        ),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() {
+        _latitude = result.latitude;
+        _longitude = result.longitude;
+      });
+    }
+  }
+
   Future<void> _submitForm() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _isSubmitting = true);
 
     final auth = context.read<AuthController>();
+    final ong = context.read<OngController>();
     final user = auth.currentUser;
     final neighborhood = _isRioDoSul
         ? _selectedRioDoSulBairro
@@ -666,9 +784,22 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
           ? null
           : _phoneController.text.trim(),
       createdAt: DateTime.now(),
+      latitude: _latitude,
+      longitude: _longitude,
     );
 
     await context.read<HelpRequestController>().createRequest(newRequest);
+    await ong.addCaseUpdate(
+      CaseUpdateModel(
+        id: 'upd_${DateTime.now().millisecondsSinceEpoch}',
+        requestId: newRequest.id,
+        authorId: newRequest.authorId,
+        authorName: newRequest.authorName,
+        type: CaseUpdateType.criado,
+        message: 'Pedido registrado no mural comunitário.',
+        createdAt: newRequest.createdAt,
+      ),
+    );
 
     if (!mounted) return;
 
@@ -683,6 +814,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
         ..addAll([NeedType.food, NeedType.water]);
       _selectedUrgency = UrgencyLevel.normal;
       _photoPath = null;
+      _latitude = null;
+      _longitude = null;
       _isSubmitting = false;
     });
 

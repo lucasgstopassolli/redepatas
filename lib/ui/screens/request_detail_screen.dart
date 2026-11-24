@@ -7,9 +7,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
+import '../../controllers/ong_controller.dart';
+import '../../core/services/report_export_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
+import '../../models/case_update_model.dart';
 import '../../models/help_request_model.dart';
+import '../../models/shelter_animal_model.dart';
 import '../widgets/section_header.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/urgency_badge.dart';
@@ -49,8 +53,18 @@ class RequestDetailScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            tooltip: 'Compartilhar pedido',
+            icon: const Icon(Icons.share_outlined),
+            onPressed: () {
+              ReportExportService.shareText(
+                ReportExportService.buildRequestShareText(request),
+                subject: 'Pedido RedePatas: ${request.title}',
+              );
+            },
+          ),
+          IconButton(
             tooltip: 'Editar informações do pedido',
-            icon: const Icon(Icons.edit_outlined, size: 20),
+            icon: const Icon(Icons.edit_outlined),
             onPressed: () => _showEditRequestModal(context, request),
           ),
         ],
@@ -79,6 +93,10 @@ class RequestDetailScreen extends StatelessWidget {
                 UrgencyBadge(urgency: request.urgency, showNormal: true),
               ],
             ),
+            const SizedBox(height: AppSpacing.sm),
+
+            // Stepper horizontal do ciclo de vida
+            _StatusStepper(status: request.status),
             const SizedBox(height: AppSpacing.sm),
 
             // Título do animal + Data/Hora da publicação
@@ -204,6 +222,143 @@ class RequestDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Ações extras de localização / ONG
+            if (request.hasCoordinates) ...[
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final uri = Uri.parse(
+                    'https://www.google.com/maps/dir/?api=1&destination=${request.latitude},${request.longitude}',
+                  );
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                },
+                icon: const Icon(Icons.directions_outlined),
+                label: const Text('Abrir rota no mapa'),
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+
+            // Linha do tempo do caso (F7)
+            Builder(
+              builder: (context) {
+                final ong = context.watch<OngController>();
+                final auth = context.watch<AuthController>();
+                final updates = ong.updatesForRequest(request.id);
+                final dateFmt = DateFormat('dd/MM • HH:mm');
+
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SectionHeader(
+                              title: 'Linha do tempo do caso',
+                              padding: EdgeInsets.zero,
+                            ),
+                            TextButton.icon(
+                              onPressed: () =>
+                                  _showAddUpdateDialog(context, request),
+                              icon: const Icon(Icons.add_comment_outlined),
+                              label: const Text('Atualizar'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        if (updates.isEmpty)
+                          Text(
+                            'Nenhuma atualização adicional registrada ainda.',
+                            style: theme.textTheme.bodyMedium,
+                          )
+                        else
+                          for (final upd in updates)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.sm),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    upd.type.icon,
+                                    size: 20,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${upd.type.label} • ${upd.authorName}',
+                                          style: theme.textTheme.titleSmall,
+                                        ),
+                                        Text(
+                                          upd.message,
+                                          style: theme.textTheme.bodyMedium,
+                                        ),
+                                        Text(
+                                          dateFmt.format(upd.createdAt),
+                                          style: theme.textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        if (auth.isOrganization ||
+                            request.status == RequestStatus.completed) ...[
+                          const Divider(),
+                          const SizedBox(height: AppSpacing.xs),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              final orgId = auth.currentUser?.organizationId ??
+                                  'org_apad_demo';
+                              await ong.saveShelterAnimal(
+                                ShelterAnimalModel(
+                                  id: 'ani_from_${request.id}',
+                                  organizationId: orgId,
+                                  name: request.title,
+                                  species: request.species,
+                                  sex: 'Não informado',
+                                  ageGroup: 'Adulto',
+                                  size: 'Médio',
+                                  temperament: 'Em avaliação',
+                                  health: 'Resgatado via RedePatas',
+                                  status: AnimalStatus.acolhido,
+                                  photoPath: request.photoPath,
+                                  description: request.description,
+                                  originRequestId: request.id,
+                                  createdAt: DateTime.now(),
+                                ),
+                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Animal registrado na vitrine de acolhidos/adoção!',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.pets_outlined),
+                            label: const Text(
+                              'Registrar como animal acolhido (ONG)',
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -258,10 +413,24 @@ class RequestDetailScreen extends StatelessWidget {
                 ],
                 FilledButton.icon(
                   onPressed: () async {
+                    final user = context.read<AuthController>().currentUser;
                     await controller.updateStatus(
                       request.id,
                       RequestStatus.completed,
                     );
+                    if (context.mounted) {
+                      await context.read<OngController>().addCaseUpdate(
+                            CaseUpdateModel(
+                              id: 'upd_${DateTime.now().millisecondsSinceEpoch}',
+                              requestId: request.id,
+                              authorId: user?.id ?? 'user_demo',
+                              authorName: user?.name ?? 'Voluntário',
+                              type: CaseUpdateType.concluido,
+                              message: 'Atendimento marcado como concluído.',
+                              createdAt: DateTime.now(),
+                            ),
+                          );
+                    }
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -301,6 +470,50 @@ class RequestDetailScreen extends StatelessWidget {
               ],
             ),
         },
+      ),
+    );
+  }
+
+  void _showAddUpdateDialog(BuildContext context, HelpRequestModel request) {
+    final msgCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (dlgCtx) => AlertDialog(
+        title: const Text('Adicionar atualização'),
+        content: TextField(
+          controller: msgCtrl,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            labelText: 'O que aconteceu?',
+            hintText: 'Ex: Animal alimentado, levado ao veterinário...',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dlgCtx).pop(),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final text = msgCtrl.text.trim();
+              if (text.isEmpty) return;
+              final user = context.read<AuthController>().currentUser;
+              await context.read<OngController>().addCaseUpdate(
+                    CaseUpdateModel(
+                      id: 'upd_${DateTime.now().millisecondsSinceEpoch}',
+                      requestId: request.id,
+                      authorId: user?.id ?? 'user_demo',
+                      authorName: user?.name ?? 'Voluntário',
+                      type: CaseUpdateType.atualizacao,
+                      message: text,
+                      createdAt: DateTime.now(),
+                    ),
+                  );
+              if (dlgCtx.mounted) Navigator.of(dlgCtx).pop();
+            },
+            child: const Text('Publicar'),
+          ),
+        ],
       ),
     );
   }
@@ -755,12 +968,70 @@ class _InfoRow extends StatelessWidget {
         Text(
           value,
           style: TextStyle(
-            fontSize: 14.5,
+            fontSize: 15,
             fontWeight: FontWeight.w500,
             color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusStepper extends StatelessWidget {
+  final RequestStatus status;
+
+  const _StatusStepper({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final currentStep = switch (status) {
+      RequestStatus.open => 0,
+      RequestStatus.inProgress => 1,
+      RequestStatus.completed => 2,
+    };
+    const labels = ['Aberto', 'Em atendimento', 'Concluído'];
+
+    return Row(
+      children: List.generate(3, (index) {
+        final active = index <= currentStep;
+        return Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    AnimatedContainer(
+                      duration: AppMotion.duration(context, AppMotion.normal),
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: active
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                        borderRadius: AppRadius.pillRadius,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      labels[index],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                        color: active
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (index < 2) const SizedBox(width: 6),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

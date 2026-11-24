@@ -1,14 +1,29 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../controllers/auth_controller.dart';
 import '../../controllers/help_request_controller.dart';
+import '../../controllers/ong_controller.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/report_export_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/theme_controller.dart';
+import '../../models/help_request_model.dart';
+import '../../models/user_model.dart';
 import '../widgets/section_header.dart';
+import 'abuse_report_screen.dart';
+import 'adoption_screen.dart';
+import 'campaigns_screen.dart';
+import 'events_ongs_screen.dart';
 import 'my_actions_screen.dart';
+import 'onboarding_screen.dart';
+import 'org_dashboard_screen.dart';
+import 'role_selection_screen.dart';
 
 class ProfileGuideScreen extends StatelessWidget {
   const ProfileGuideScreen({super.key});
@@ -230,6 +245,191 @@ class ProfileGuideScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // Bloco 1.5: Papel, Conquistas e Ferramentas para ONGs/Comunidade
+          Builder(
+            builder: (context) {
+              final ong = context.watch<OngController>();
+              final completedHelping = requestsController
+                  .myHelpingRequests(userId)
+                  .where((r) => r.status == RequestStatus.completed)
+                  .length;
+              final badges = ong.computeUserBadges(
+                createdCount: createdCount,
+                helpingCount: helpedCount,
+                completedHelpingCount: completedHelping,
+                eventsCount: ong.eventsAttendedByUser(userId),
+              );
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    user?.role.icon ?? UserRole.citizen.icon,
+                                    color: theme.colorScheme.primary,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: AppSpacing.xs),
+                                  Text(
+                                    'Perfil: ${user?.role.label ?? "Cidadão"}',
+                                    style: theme.textTheme.titleMedium,
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) =>
+                                          const RoleSelectionScreen(),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Trocar'),
+                              ),
+                            ],
+                          ),
+                          if (badges.isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xs),
+                            Wrap(
+                              spacing: AppSpacing.xs,
+                              runSpacing: AppSpacing.xs,
+                              children: [
+                                for (final b in badges)
+                                  Chip(
+                                    avatar: Icon(
+                                      Icons.workspace_premium_outlined,
+                                      size: 18,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    label: Text(b),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.md,
+                            AppSpacing.md,
+                            AppSpacing.md,
+                            AppSpacing.xs,
+                          ),
+                          child: SectionHeader(
+                            title: 'Ferramentas para ONGs e Comunidade',
+                          ),
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.analytics_outlined,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: const Text('Painel da ONG e Relatórios'),
+                          subtitle: const Text(
+                            'Métricas, alertas críticos, PDF e CSV',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const OrgDashboardScreen(),
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.pets_outlined,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: const Text('Adoção e Animais Acolhidos'),
+                          subtitle: Text(
+                            '${ong.shelterAnimals.length} animais na vitrine',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AdoptionScreen(),
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.event_outlined,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: const Text('Mutirões, ONGs e Voluntários'),
+                          subtitle: Text(
+                            '${ong.events.length} eventos • ${ong.organizations.length} ONGs',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const EventsOngsScreen(),
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.volunteer_activism_outlined,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: const Text('Doações e Campanhas (Pix)'),
+                          subtitle: Text(
+                            '${ong.campaigns.length} campanhas ativas',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const CampaignsScreen(),
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                        ListTile(
+                          leading: Icon(
+                            Icons.gavel_outlined,
+                            color: theme.colorScheme.error,
+                          ),
+                          title: const Text('Denúncia de Maus-Tratos'),
+                          subtitle: const Text(
+                            'Guia legal, checklist e telefones 190/193/181',
+                          ),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const AbuseReportScreen(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              );
+            },
+          ),
+
           // Bloco 2: Aparência do Aplicativo
           Card(
             child: Padding(
@@ -285,6 +485,95 @@ class ProfileGuideScreen extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Bloco 2.5: Lembretes, Apresentação e Backup
+          Card(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.xs,
+                  ),
+                  child: SectionHeader(title: 'Preferências e Dados'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.notifications_active_outlined),
+                  title: const Text('Testar lembrete local'),
+                  subtitle: const Text(
+                    'Verifica se as notificações de eventos e casos estão ativas',
+                  ),
+                  onTap: () async {
+                    final ok = await NotificationService.instance.showReminder(
+                      id: 999,
+                      title: 'RedePatas — Lembrete ativo',
+                      body:
+                          'Você receberá avisos de eventos inscritos e pedidos em andamento.',
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            ok
+                                ? 'Lembrete de teste enviado!'
+                                : 'Notificações locais ficam disponíveis no app instalado.',
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.slideshow_outlined),
+                  title: const Text('Ver apresentação do app'),
+                  subtitle: const Text('Reabrir o guia inicial do RedePatas'),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (ctx) => OnboardingScreen(
+                          onFinished: () => Navigator.of(ctx).pop(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.backup_outlined),
+                  title: const Text('Exportar backup dos pedidos (JSON)'),
+                  subtitle: const Text(
+                    'Salve ou compartilhe uma cópia local dos registros',
+                  ),
+                  onTap: () async {
+                    final jsonStr = ReportExportService.buildBackupJson(
+                      requestsController.allRequests,
+                    );
+                    try {
+                      await ReportExportService.shareFileBytes(
+                        bytes: Uint8List.fromList(utf8.encode(jsonStr)),
+                        filename: 'backup_redepatas.json',
+                        mimeType: 'application/json',
+                        text: 'Backup RedePatas',
+                      );
+                    } catch (_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Backup gerado com sucesso.'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
