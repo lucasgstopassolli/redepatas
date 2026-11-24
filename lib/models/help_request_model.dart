@@ -125,23 +125,34 @@ enum UrgencyLevel {
 
 class HelpRequestModel {
   final String id;
-  final String title;              // Ex: "Cão caramelo", "Gata cinza"
-  final AnimalSpecies species;     // Cão, Gato, Outro
-  final List<NeedType> needs;      // Múltiplas necessidades (Água, Alimento, Abrigo, Socorro)
-  final UrgencyLevel urgency;      // Normal, Alta, Crítica
-  final String city;               // Padrão: "Rio do Sul" ou vindo da API IBGE
-  final String neighborhood;       // Bairro (da lista de Rio do Sul ou digitado)
-  final String referencePoint;     // Ponto de referência próximo
-  final String description;        // Descrição detalhada da situação
-  final String? photoPath;         // Caminho local da foto ou URL futura do Firebase Storage
-  final RequestStatus status;      // Aberto, Em atendimento, Concluído
+  final String title;
+  final AnimalSpecies species;
+  final List<NeedType> needs;
+  final UrgencyLevel urgency;
+  final String city;
+  final String neighborhood;
+  final String referencePoint;
+  final String description;
+  final String? photoPath;
+  final RequestStatus status;
   final String authorId;
   final String authorName;
-  final String? authorPhone;       // Para contato opcional via WhatsApp
-  final String? helperId;          // ID do voluntário que assumiu o pedido
-  final String? helperName;        // Nome do voluntário que está ajudando
-  final String? helperCommitment;  // O que o voluntário informou que vai fornecer
+  final String? authorPhone;
+  final String? helperId;
+  final String? helperName;
+  final String? helperCommitment;
   final DateTime createdAt;
+
+  // Campos v2 (todos opcionais / com padrão seguro para retrocompatibilidade)
+  final double? latitude;
+  final double? longitude;
+  final String? organizationId;
+  final DateTime? updatedAt;
+  final DateTime? completedAt;
+  final List<String> photos;
+  final int animalCount;
+  final String? afterPhotoPath;
+  final String? reportedReason;
 
   const HelpRequestModel({
     required this.id,
@@ -162,7 +173,31 @@ class HelpRequestModel {
     this.helperName,
     this.helperCommitment,
     required this.createdAt,
+    this.latitude,
+    this.longitude,
+    this.organizationId,
+    this.updatedAt,
+    this.completedAt,
+    this.photos = const [],
+    this.animalCount = 1,
+    this.afterPhotoPath,
+    this.reportedReason,
   });
+
+  bool get hasCoordinates => latitude != null && longitude != null;
+
+  List<String> get allPhotos {
+    final result = <String>[];
+    if (photoPath != null && photoPath!.trim().isNotEmpty) {
+      result.add(photoPath!.trim());
+    }
+    for (final p in photos) {
+      if (p.trim().isNotEmpty && !result.contains(p.trim())) {
+        result.add(p.trim());
+      }
+    }
+    return result;
+  }
 
   String get needsSummary {
     if (needs.isEmpty) return 'Apoio geral';
@@ -188,6 +223,15 @@ class HelpRequestModel {
     String? helperName,
     String? helperCommitment,
     DateTime? createdAt,
+    double? latitude,
+    double? longitude,
+    String? organizationId,
+    DateTime? updatedAt,
+    DateTime? completedAt,
+    List<String>? photos,
+    int? animalCount,
+    String? afterPhotoPath,
+    String? reportedReason,
   }) {
     return HelpRequestModel(
       id: id ?? this.id,
@@ -208,6 +252,15 @@ class HelpRequestModel {
       helperName: helperName ?? this.helperName,
       helperCommitment: helperCommitment ?? this.helperCommitment,
       createdAt: createdAt ?? this.createdAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      organizationId: organizationId ?? this.organizationId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      completedAt: completedAt ?? this.completedAt,
+      photos: photos ?? this.photos,
+      animalCount: animalCount ?? this.animalCount,
+      afterPhotoPath: afterPhotoPath ?? this.afterPhotoPath,
+      reportedReason: reportedReason ?? this.reportedReason,
     );
   }
 
@@ -231,6 +284,15 @@ class HelpRequestModel {
       'helperName': helperName,
       'helperCommitment': helperCommitment,
       'createdAt': createdAt.toIso8601String(),
+      'latitude': latitude,
+      'longitude': longitude,
+      'organizationId': organizationId,
+      'updatedAt': updatedAt?.toIso8601String(),
+      'completedAt': completedAt?.toIso8601String(),
+      'photos': photos.isEmpty ? null : photos.join(','),
+      'animalCount': animalCount,
+      'afterPhotoPath': afterPhotoPath,
+      'reportedReason': reportedReason,
     };
   }
 
@@ -240,6 +302,24 @@ class HelpRequestModel {
         .where((s) => s.trim().isNotEmpty)
         .map(NeedType.fromString)
         .toList();
+
+    final rawPhotos = (map['photos']?.toString() ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    double? parseDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString());
+    }
+
+    int parseInt(dynamic v, int fallback) {
+      if (v == null) return fallback;
+      if (v is int) return v;
+      return int.tryParse(v.toString()) ?? fallback;
+    }
 
     return HelpRequestModel(
       id: map['id'].toString(),
@@ -261,6 +341,19 @@ class HelpRequestModel {
       helperCommitment: map['helperCommitment']?.toString(),
       createdAt: DateTime.tryParse(map['createdAt']?.toString() ?? '') ??
           DateTime.now(),
+      latitude: parseDouble(map['latitude']),
+      longitude: parseDouble(map['longitude']),
+      organizationId: map['organizationId']?.toString(),
+      updatedAt: map['updatedAt'] != null
+          ? DateTime.tryParse(map['updatedAt'].toString())
+          : null,
+      completedAt: map['completedAt'] != null
+          ? DateTime.tryParse(map['completedAt'].toString())
+          : null,
+      photos: rawPhotos,
+      animalCount: parseInt(map['animalCount'], 1),
+      afterPhotoPath: map['afterPhotoPath']?.toString(),
+      reportedReason: map['reportedReason']?.toString(),
     );
   }
 }

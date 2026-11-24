@@ -1,0 +1,264 @@
+{
+  "meta": {
+    "name": "RedePatas",
+    "package": "redepatas",
+    "version": "1.0.0+1",
+    "language_of_ui": "pt-BR",
+    "language_of_code": "Dart (identifiers in English, comments/UI strings in Portuguese)",
+    "purpose": "App comunitário Flutter (Material 3) para registrar, organizar e acompanhar pedidos de ajuda para animais de rua (água, alimento, abrigo, socorro) em Rio do Sul (SC) e Alto Vale do Itajaí.",
+    "context": "Projeto acadêmico de extensão (Sistemas de Informação, disciplina Desenvolvimento para Plataforma Móvel). Autores: Ariel Jahn e Lucas Gabriel Stopassoli.",
+    "android_application_id": "br.edu.redepatas.redepatas",
+    "generated_at": "2026-11-24",
+    "maintenance_note": "Gerado por análise estática do código. Se o código mudar, revalide contra lib/ (fonte da verdade)."
+  },
+
+  "stack": {
+    "framework": "Flutter (Dart SDK ^3.13.4), useMaterial3: true",
+    "state_management": "provider (ChangeNotifier + MultiProvider/Consumer)",
+    "persistence": {
+      "requests": "sqflite (mobile) / sqflite_common_ffi (Linux, Windows, macOS) — arquivo redepatas_v1.db, tabela help_requests, schema version 1, sem migrations",
+      "web": "SQLite desativado em kIsWeb; usa lista em memória (_webMemoryFallback) semeada com os mesmos 3 seeds. Dados perdem-se ao recarregar.",
+      "session_and_theme": "shared_preferences"
+    },
+    "network": "http — apenas API pública do IBGE (lista de municípios de SC), com timeout 8s e fallback offline",
+    "other_packages": ["image_picker (câmera/galeria)", "url_launcher (WhatsApp/telefone)", "intl", "google_fonts (Inter)", "path", "cupertino_icons"],
+    "dev": ["flutter_lints", "flutter_launcher_icons (assets/icon/icon.png)"],
+    "platforms": ["android", "ios", "web", "linux", "macos", "windows"],
+    "backend": "Nenhum. 100% local/offline. Repositório abstrato permite trocar por Firebase/Supabase futuramente."
+  },
+
+  "commands": {
+    "install": "flutter pub get",
+    "run": "flutter run",
+    "analyze": "flutter analyze",
+    "test": "flutter test",
+    "icons": "dart run flutter_launcher_icons"
+  },
+
+  "architecture": {
+    "pattern": "MVC-like em camadas com Repository: UI (screens/widgets) -> Controllers (ChangeNotifier) -> IHelpRequestRepository -> SqliteHelpRepository.",
+    "dependency_injection": "main() cria SqliteHelpRepository e injeta em RedePatasApp -> HelpRequestController(repository). Testes injetam InMemoryHelpRepository.",
+    "entrypoint_flow": [
+      "main(): WidgetsFlutterBinding.ensureInitialized(); cria repository; runApp(RedePatasApp)",
+      "MultiProvider: ThemeController, AuthController, HelpRequestController",
+      "MaterialApp(theme: AppTheme.lightTheme, darkTheme: AppTheme.darkTheme, themeMode: ThemeController.themeMode)",
+      "home: AuthController.isAuthenticated ? MainShellScreen : WelcomeScreen"
+    ],
+    "layers_and_files": {
+      "lib/main.dart": "Bootstrap, providers, roteamento raiz por autenticação.",
+      "lib/core/theme/app_theme.dart": "Paleta (constantes), TextTheme (Inter), lightTheme e darkTheme completos.",
+      "lib/core/theme/app_tokens.dart": "AppSpacing (4/8/12/16/24/32) e AppRadius (control=8, pill=999).",
+      "lib/core/theme/theme_controller.dart": "ThemeMode persistido em shared_preferences chave 'redepatas_theme_mode' (light|dark|system).",
+      "lib/core/services/ibge_city_service.dart": "IbgeCityService.fetchSantaCatarinaCities(): GET servicodados.ibge.gov.br/api/v1/localidades/estados/SC/municipios?orderBy=nome; cache em memória; fallbackRegionalCities (Rio do Sul, Lontras, Ibirama, Agronômica...) em erro/offline.",
+      "lib/core/constants/rio_do_sul_bairros.dart": "bairrosRioDoSul: 25 bairros (Centro, Canoas, Santana, Budag, ... 'Outro / Interior').",
+      "lib/models/help_request_model.dart": "Enums AnimalSpecies, NeedType, RequestStatus, UrgencyLevel (cada um com label pt-BR e fromString com fallback) + HelpRequestModel (imutável, copyWith, toMap/fromMap, getter needsSummary).",
+      "lib/models/user_model.dart": "UserModel(id, name, email, phone?, defaultCity='Rio do Sul') com copyWith/toJson/fromJson.",
+      "lib/controllers/auth_controller.dart": "Sessão local (sem backend). signIn() cria usuário com id 'user_<hash do e-mail>'; nomes/e-mail vazios viram 'Voluntário RedePatas'/'voluntario@redepatas.org'. signInAsDemo() => id 'user_demo'. Persistido em shared_preferences 'redepatas_current_user' (JSON). Também há signOut/atualização de perfil.",
+      "lib/controllers/help_request_controller.dart": "Estado do mural: lista, loading, busca, filtro de categoria (HomeFilterCategory: all/water/food/shelter/urgent), filtro de cidade, showCompletedInHome. Getters: filteredRequests, availableCities. Métodos: loadRequests, createRequest, updateRequest, assignVolunteer, updateStatus (todos recarregam a lista após escrever).",
+      "lib/repositories/i_help_request_repository.dart": "Interface: getAllRequests, createRequest, updateRequest, assignVolunteer, updateStatus.",
+      "lib/repositories/sqlite_help_repository.dart": "Implementação SQLite + fallback web; semeia 3 pedidos na criação do banco.",
+      "lib/ui/screens/": "welcome, main_shell, home_requests, search_requests, new_request, my_actions, profile_guide, request_detail.",
+      "lib/ui/widgets/": "request_card, status_badge, urgency_badge, empty_state, section_header.",
+      "test/widget_test.dart": "Testes com InMemoryHelpRepository, mock http (IBGE), sqflite ffi, shared_preferences mock.",
+      "md/": "Documentação de projeto em pt-BR (01 requisitos, 02 design system, 03 arquitetura/BD/IBGE, 04 telas/widgets, 05 roteiro/dupla, 06 plano de redesign minimalista).",
+      "icon.svg, assets/icon/icon.png": "Identidade/ícone do app."
+    }
+  },
+
+  "domain": {
+    "enums": {
+      "AnimalSpecies": { "values": ["dog (Cão)", "cat (Gato)", "other (Outro)"], "default": "dog" },
+      "NeedType": {
+        "values": ["water (Água)", "food (Alimento)", "shelter (Abrigo)", "medical (Socorro/Cuidados)"],
+        "default": "food",
+        "icons": { "water": "Icons.water_drop_outlined", "food": "Icons.restaurant_outlined", "shelter": "Icons.home_outlined", "medical": "Icons.medical_services_outlined" }
+      },
+      "RequestStatus": { "values": ["open (Aberto)", "inProgress (Em atendimento)", "completed (Concluído)"], "default": "open" },
+      "UrgencyLevel": { "values": ["normal (Normal)", "high (Alta)", "critical (Crítica)"], "default": "normal" }
+    },
+    "entity_HelpRequest": {
+      "fields": {
+        "id": "String (PK) — gerado na criação; seeds: seed_1..seed_3",
+        "title": "String — ex: 'Cão caramelo'",
+        "species": "AnimalSpecies",
+        "needs": "List<NeedType> — múltiplas; no SQLite é TEXT CSV de enum.name ('food,water'); lista vazia vira [food] em fromMap",
+        "urgency": "UrgencyLevel",
+        "city": "String — padrão 'Rio do Sul'",
+        "neighborhood": "String",
+        "referencePoint": "String",
+        "description": "String",
+        "photoPath": "String? — caminho local do arquivo",
+        "status": "RequestStatus",
+        "authorId / authorName / authorPhone?": "autor (phone usado para WhatsApp)",
+        "helperId? / helperName? / helperCommitment?": "voluntário que assumiu e o que se comprometeu a levar",
+        "createdAt": "DateTime (ISO-8601 TEXT no banco); lista ordenada createdAt DESC"
+      },
+      "sqlite_table": "help_requests: todas as colunas TEXT; NOT NULL em id/title/species/needs/urgency/city/neighborhood/referencePoint/description/status/authorId/authorName/createdAt; nullable: photoPath, authorPhone, helperId, helperName, helperCommitment. Enums gravados como enum.name."
+    },
+    "lifecycle": {
+      "open": "Criado pelo autor. Qualquer outro usuário pode clicar 'Quero Ajudar este Animal'.",
+      "inProgress": "Após assignVolunteer (grava helperId/helperName/helperCommitment). Autor/voluntário veem botão 'Marcar ajuda como Concluída'.",
+      "completed": "Concluído; some do mural por padrão (visível com chip 'Concluídos'). Há ação 'Reabrir'.",
+      "edit": "Autor pode editar o pedido (diálogo com urgência e 'Salvar alterações')."
+    },
+    "business_rules": [
+      "Mural (Home) oculta 'completed' a menos que showCompletedInHome=true.",
+      "Filtro 'Urgente' mostra urgency != normal OU needs contém medical.",
+      "Busca textual casa em título, bairro, cidade, ponto de referência, espécie e necessidades.",
+      "availableCities = {'Rio do Sul'} ∪ cidades presentes nos pedidos, ordenadas.",
+      "Contato com autor via WhatsApp (url_launcher) usando authorPhone.",
+      "Seeds: seed_1 'Cão caramelo' (Centro, normal, open), seed_2 'Gata cinza' (Canoas, high, inProgress, helper Ariel Jahn), seed_3 'Filhote malhado' (Santana, critical, open, autor user_demo)."
+    ]
+  },
+
+  "navigation_and_screens": {
+    "model": "Sem rotas nomeadas. MaterialApp.home alterna WelcomeScreen/MainShellScreen. Detalhe e demais telas via Navigator.push(MaterialPageRoute). Abas em IndexedStack (estado preservado).",
+    "main_shell_tabs": [
+      { "index": 0, "tooltip": "Início", "screen": "HomeRequestsScreen", "icon": "home_outlined/home_rounded", "note": "recebe onNewRequestTap => aba 2" },
+      { "index": 1, "tooltip": "Buscar", "screen": "SearchRequestsScreen", "icon": "search_rounded", "note": "busca + filtros (urgência, limpar filtros)" },
+      { "index": 2, "tooltip": "Novo", "screen": "NewRequestScreen", "icon": "add_rounded em botão circular destacado", "note": "ao publicar chama onRequestCreated => volta à aba 0 e mostra SnackBar 'Pedido publicado com sucesso no Mural Comunitário!'" },
+      { "index": 3, "tooltip": "Pedidos", "screen": "MyActionsScreen", "icon": "list_alt_outlined/list_alt_rounded", "note": "TabBar com 2 sub-abas: Ajudando e Criados por mim" },
+      { "index": 4, "tooltip": "Minha área", "screen": "ProfileGuideScreen", "icon": "person_outline_rounded/person_rounded", "note": "perfil, tema, guia de abordagem segura, contatos úteis" }
+    ],
+    "screens": {
+      "WelcomeScreen": "Entrada: botões 'Entrar', 'Criar conta' e 'Entrar como Visitante / Demonstração' (signInAsDemo). Lista de _FeatureItem.",
+      "HomeRequestsScreen": "Mural/feed: AppBar, busca, chips de filtro (Todos, Água, Alimento, Abrigo, Urgentes, Concluídos), filtro de cidade, lista de RequestCard, EmptyState, botão 'Solicitar ajuda para um animal'.",
+      "SearchRequestsScreen": "Busca dedicada com filtros por urgência e 'Limpar filtros'.",
+      "NewRequestScreen": "Formulário: espécie (SegmentedButton Cão/Gato/Outro), necessidades (múltiplas), urgência (Normal / Alta / Crítica (Risco / Ferido)), cidade (IBGE, 'Trocar cidade'), bairro (lista de Rio do Sul), ponto de referência, descrição, foto opcional (Câmera/Galeria, 'Trocar foto'/'Remover'), botão 'Publicar pedido'.",
+      "MyActionsScreen": "DefaultTabController com duas listas (_RequestsSubTabList): pedidos em que ajudo e pedidos criados por mim.",
+      "RequestDetailScreen": "Detalhes: _DetailHeaderPhoto (toque abre _FullScreenPhotoViewer), _InfoRow, badges, botões: 'Quero Ajudar este Animal' -> diálogo 'Confirmar Compromisso'; 'Falar no WhatsApp com quem publicou'; 'Marcar ajuda como Concluída'; 'Reabrir'; edição do pedido. Se id inexistente: 'Pedido não encontrado.'",
+      "ProfileGuideScreen": "Cabeçalho de perfil com _StatItem, editar perfil ('Salvar alterações'), seletor de tema (Claro/Escuro/Sistema), guia de abordagem segura, _EmergencyContactCard: APAD Rio do Sul, Prefeitura/Bem-Estar Animal, Bombeiros 193, Polícia Militar 190."
+    },
+    "shared_widgets": {
+      "RequestCard": "Card do pedido (avatar do animal _AnimalAvatarThumbnail, título, localização, necessidades, StatusBadge + UrgencyBadge).",
+      "StatusBadge": "Pílula com cores semânticas de status.",
+      "UrgencyBadge": "Pílula com cores semânticas de urgência.",
+      "EmptyState": "Ícone + título + mensagem para listas vazias.",
+      "SectionHeader": "Cabeçalho de seção em caixa-alta pequena (labelSmall)."
+    }
+  },
+
+  "visual_design": {
+    "philosophy": "Minimalista, sóbrio e 'produto real' (redesign documentado em md/06). Superfícies planas, bordas de 1px, sem gradientes, cor com propósito, ícones Material outlined no lugar de emojis, copy curto e descritivo.",
+    "rules_for_ai": [
+      "NÃO usar emojis como ícones/rótulos na UI; usar Icons.*_outlined (tamanho ~20, cor onSurfaceVariant).",
+      "Terracota apenas para ação primária, item selecionado e links; resto em neutros da paleta.",
+      "Cards/botões/inputs/chips/modais usam AppRadius.control (8). Pílulas (badges) usam AppRadius.pill. Exceção intencional: a barra de navegação flutuante em formato de pílula.",
+      "Elevação 0 e sem sombras, exceto a barra flutuante (sombra suave).",
+      "Espaçamento sempre via AppSpacing (grade 4/8): xxs4 xs8 sm12 md16 lg24 xl32.",
+      "Nunca hardcodar cores nas telas: usar Theme.of(context).colorScheme ou constantes de AppTheme (incl. cores semânticas de status/urgência com variantes light/dark).",
+      "Pesos de fonte w500/w600 (evitar w800). Fonte Inter via google_fonts.",
+      "Toda UI nova deve funcionar nos temas claro e escuro.",
+      "Textos de interface em português do Brasil, tom sóbrio, sem exclamações promocionais.",
+      "Mudanças visuais não devem alterar controllers, repositórios, modelos nem fluxos."
+    ],
+    "typography": {
+      "family": "Inter (GoogleFonts.interTextTheme)",
+      "scale": {
+        "titleLarge": "20/600, letterSpacing -0.3",
+        "titleMedium": "16/600, letterSpacing -0.2",
+        "titleSmall": "14/600",
+        "bodyLarge": "15/400, height 1.45",
+        "bodyMedium": "14/400, height 1.4, cor secundária",
+        "bodySmall": "12/400, cor secundária",
+        "labelLarge": "14/600",
+        "labelMedium": "12/500",
+        "labelSmall": "11/600, letterSpacing 0.6 (cabeçalhos de seção em caps)",
+        "appBarTitle": "18/600"
+      }
+    },
+    "colors": {
+      "brand": {
+        "terracottaPrimary": "#C85A32",
+        "terracottaDarkPrimary": "#E07A5F",
+        "caramelSecondary": "#D48C46",
+        "sageTertiary": "#5F7A61"
+      },
+      "light": {
+        "background": "#FAF6F0 (areia/creme)",
+        "surface": "#FFFFFF",
+        "surfaceContainer": "#F3EAE1",
+        "onSurface": "#2D221E",
+        "secondaryText": "#6E5A53",
+        "outline": "#E2D5C8"
+      },
+      "dark": {
+        "background": "#1A1412 (terra noturna)",
+        "surface": "#261E1B",
+        "surfaceContainer": "#362A26",
+        "onSurface": "#F5EBE6",
+        "secondaryText": "#B8A69E",
+        "outline": "#4A3B35",
+        "primary": "#E07A5F"
+      },
+      "semantic": {
+        "status_open": { "text": "#B84A24", "bgLight": "#FDE8DF", "textDark": "#FFB59D", "bgDark": "#4A2318" },
+        "status_inProgress": { "text": "#9E6710", "bgLight": "#FEF3DC", "textDark": "#FFD88D", "bgDark": "#453010" },
+        "status_completed": { "text": "#2E6B3E", "bgLight": "#E3F5E8", "textDark": "#A8E5B5", "bgDark": "#193822" },
+        "urgency_critical": { "text": "#B3261E", "textDark": "#FF897D", "bgLight": "#FBEBEA", "bgDark": "#421815" },
+        "urgency_high": { "textLight": "#A65F17", "textDark": "#FFCA7A", "bgLight": "#FBF1E6", "bgDark": "#382613" },
+        "error_color_scheme": "#B3261E"
+      },
+      "color_scheme_source": "ColorScheme.fromSeed(seed terracotta) com overrides: primary, secondary, tertiary, surface, onSurface, onSurfaceVariant, surfaceContainer(+Highest), outline, error."
+    },
+    "component_theme": {
+      "appBar": "Fundo = scaffold background (sem terracota), elevation 0, scrolledUnderElevation 0, título à esquerda, borda inferior 1px outline.",
+      "card": "Cor surface, elevation 0, margin 0, raio 8, borda 1px outline.",
+      "filledButton": "Terracota, texto branco, altura mínima 48, raio 8, 15/600, elevation 0.",
+      "outlinedButton": "Borda 1.2px na cor primária, altura 48, raio 8.",
+      "textButton": "Cor primária, 14/500, raio 8.",
+      "inputDecoration": "filled com cor surface, padding 14x12, borda 1px outline, foco 1.5px primária, raio 8, hint 14 em cor secundária.",
+      "chip": "Raio 8, sem checkmark, selecionado = fundo surfaceContainer (+ borda primária), label 13/500.",
+      "segmentedButton": "Raio 8, borda 1px outline.",
+      "divider": "1px na cor outline.",
+      "navigationBar_theme": "Altura 64, indicador surfaceContainer, selecionado terracota 12/600 (definido no tema, porém o app usa barra flutuante customizada)."
+    },
+    "navigation_bar_visual": {
+      "widget": "_FloatingPillNavigationBar (lib/ui/screens/main_shell_screen.dart); Scaffold extendBody:true",
+      "geometry": "Item circular 48px, padding interno 8px, borda 1px => altura 66px, raio 33px (concêntrico). Largura máx 420, margens horizontais 24 (lg) e inferior 16 (md), centralizada, dentro de SafeArea.",
+      "style": "Fundo surface, borda 1px outline, sombra preta alpha 0.10 (claro) / 0.38 (escuro), blur 20, offset (0,6).",
+      "items": "4 _CircularNavItem + 1 _CenterCircularActionButton (botão 'Novo' central, ícone add) na posição 3 de 5; ícone outlined quando inativo, preenchido (rounded) quando selecionado.",
+      "implication": "Conteúdo rolável das abas deve ter padding inferior suficiente para não ficar sob a barra flutuante."
+    },
+    "app_icon": "assets/icon/icon.png (gerado para Android 'launcher_icon' e iOS por flutter_launcher_icons); fonte vetorial icon.svg na raiz."
+  },
+
+  "external_integrations": {
+    "ibge": "https://servicodados.ibge.gov.br/api/v1/localidades/estados/SC/municipios?orderBy=nome — retorna JSON [{nome,...}]; usa campo 'nome'.",
+    "whatsapp": "Abertura via url_launcher com authorPhone (formato nacional sem +, ex: 47999112233).",
+    "image_picker": "Câmera e Galeria; caminho salvo em photoPath.",
+    "permissions": "Verificar AndroidManifest/Info.plist para câmera e galeria ao mexer nessas features."
+  },
+
+  "testing": {
+    "file": "test/widget_test.dart",
+    "approach": "Widget tests usando InMemoryHelpRepository (implements IHelpRequestRepository), SharedPreferences.setMockInitialValues, http MockClient para IBGE e sqflite_common_ffi para testes do repositório SQLite (customDatabasePath).",
+    "tip": "Ao criar novas telas/controllers, injete o repositório em memória; não dependa de rede ou disco."
+  },
+
+  "conventions": {
+    "naming": "snake_case para arquivos; sufixos _screen, _controller, _model, _repository; privados com _; interface com prefixo I.",
+    "immutability": "Models imutáveis com copyWith; atualizar via controller, nunca mutar a lista diretamente.",
+    "controller_pattern": "Escrita no repositório -> await loadRequests() -> notifyListeners().",
+    "state_in_ui": "Telas leem com context.watch/Consumer; ações com context.read.",
+    "language": "Strings de UI e comentários em pt-BR. Manter acentuação correta."
+  },
+
+  "known_limits_and_todos": [
+    "Autenticação é simulada localmente (sem senha/servidor); id derivado de hash do e-mail.",
+    "Sem sincronização multiusuário: pedidos existem só no dispositivo.",
+    "Web usa memória volátil.",
+    "Banco versão 1 sem estratégia de migração (alterar schema exige onUpgrade e bump de versão).",
+    "Fotos são armazenadas como caminho local (não portáveis entre dispositivos).",
+    "Possível evolução: Firebase/Supabase implementando IHelpRequestRepository, Storage para fotos, geolocalização/mapa."
+  ],
+
+  "ai_working_guidelines": [
+    "Leia lib/ como fonte da verdade; md/ pode estar defasado em relação ao código (ex.: a barra de navegação atual é flutuante em pílula).",
+    "Para nova fonte de dados, implemente IHelpRequestRepository e troque apenas em main().",
+    "Para novos campos em HelpRequest: atualizar model (campo, copyWith, toMap, fromMap), schema SQLite (+ migração), seeds, formulários e testes.",
+    "Reutilize tokens (AppSpacing/AppRadius) e widgets compartilhados antes de criar novos.",
+    "Rode flutter analyze e flutter test após alterações.",
+    "Não editar build/, .dart_tool/ nem arquivos gerados de plataforma (generated_plugin_registrant, etc.)."
+  ]
+}
