@@ -9,6 +9,7 @@ import 'core/theme/theme_controller.dart';
 import 'repositories/i_help_request_repository.dart';
 import 'repositories/sqlite_help_repository.dart';
 import 'ui/screens/main_shell_screen.dart';
+import 'ui/screens/onboarding_screen.dart';
 import 'ui/screens/welcome_screen.dart';
 
 void main() {
@@ -63,16 +64,18 @@ class _AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authState = context.select<AuthController, (bool, bool)>(
-      (a) => (a.isInitialized, a.isAuthenticated),
+    final authState = context.select<AuthController, (bool, bool, bool)>(
+      (a) => (a.isInitialized, a.onboardingDone, a.isAuthenticated),
     );
-    final (isInitialized, isAuthenticated) = authState;
+    final (isInitialized, onboardingDone, isAuthenticated) = authState;
 
     final Widget child;
     if (!isInitialized) {
       child = const _SplashScreen(key: ValueKey('splash'));
     } else if (isAuthenticated) {
       child = const MainShellScreen(key: ValueKey('main_shell'));
+    } else if (!onboardingDone) {
+      child = const OnboardingScreen(key: ValueKey('onboarding'));
     } else {
       child = const WelcomeScreen(key: ValueKey('welcome'));
     }
