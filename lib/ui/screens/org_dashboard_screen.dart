@@ -353,6 +353,74 @@ class _OrgDashboardScreenState extends State<OrgDashboardScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // Distribuição por espécie (PieChart) e bairros
+                    const SectionHeader(title: 'Espécies e bairros'),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (metrics.bySpecies.isNotEmpty)
+                              SizedBox(
+                                height: 150,
+                                child: PieChart(
+                                  PieChartData(
+                                    sectionsSpace: 2,
+                                    centerSpaceRadius: 30,
+                                    sections: [
+                                      for (final entry
+                                          in metrics.bySpecies.entries)
+                                        PieChartSectionData(
+                                          value: entry.value.toDouble(),
+                                          title:
+                                              '${entry.key.label} (${entry.value})',
+                                          radius: 46,
+                                          color: switch (entry.key) {
+                                            AnimalSpecies.dog =>
+                                              theme.colorScheme.primary,
+                                            AnimalSpecies.cat =>
+                                              theme.colorScheme.secondary,
+                                            AnimalSpecies.other =>
+                                              theme.colorScheme.tertiary,
+                                          },
+                                          titleStyle: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            if (metrics.byNeighborhood.isNotEmpty) ...[
+                              const Divider(),
+                              const SizedBox(height: AppSpacing.xs),
+                              Wrap(
+                                spacing: AppSpacing.xs,
+                                runSpacing: AppSpacing.xs,
+                                children: [
+                                  for (final entry in (metrics
+                                          .byNeighborhood.entries
+                                          .toList()
+                                        ..sort((a, b) =>
+                                            b.value.compareTo(a.value)))
+                                      .take(6))
+                                    Chip(
+                                      label: Text(
+                                        '${entry.key}: ${entry.value}',
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.lg),
 
                     // Atalhos rápidos dos módulos da ONG

@@ -51,6 +51,17 @@ class RequestDetailScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
+            tooltip: controller.isFollowing(request.id)
+                ? 'Deixar de seguir'
+                : 'Seguir pedido',
+            icon: Icon(
+              controller.isFollowing(request.id)
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+            ),
+            onPressed: () => controller.toggleFollow(request.id),
+          ),
+          IconButton(
             tooltip: 'Compartilhar pedido',
             icon: const Icon(Icons.share_outlined),
             onPressed: () {
@@ -64,6 +75,26 @@ class RequestDetailScreen extends StatelessWidget {
             tooltip: 'Editar informações do pedido',
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => _showEditRequestModal(context, request),
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Mais opções',
+            onSelected: (value) {
+              if (value == 'summon') {
+                _showMatchingVolunteersSheet(context, request);
+              } else if (value == 'report') {
+                _showReportDialog(context, request);
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'summon',
+                child: Text('Convocar voluntários compatíveis'),
+              ),
+              PopupMenuItem(
+                value: 'report',
+                child: Text('Reportar pedido (spam / duplicado)'),
+              ),
+            ],
           ),
         ],
       ),
@@ -457,11 +488,25 @@ class RequestDetailScreen extends StatelessWidget {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    controller.updateStatus(
+                  onPressed: () async {
+                    final user = context.read<AuthController>().currentUser;
+                    await controller.updateStatus(
                       request.id,
                       RequestStatus.open,
                     );
+                    if (context.mounted) {
+                      await context.read<OngController>().addCaseUpdate(
+                            CaseUpdateModel(
+                              id: 'upd_${DateTime.now().millisecondsSinceEpoch}',
+                              requestId: request.id,
+                              authorId: user?.id ?? 'user_demo',
+                              authorName: user?.name ?? 'Voluntário',
+                              type: CaseUpdateType.reaberto,
+                              message: 'Pedido reaberto para novo apoio.',
+                              createdAt: DateTime.now(),
+                            ),
+                          );
+                    }
                   },
                   child: const Text('Reabrir'),
                 ),
@@ -512,6 +557,132 @@ class RequestDetailScreen extends StatelessWidget {
             child: const Text('Publicar'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMatchingVolunteersSheet(
+    BuildContext context,
+    HelpRequestModel request,
+  ) {
+    final matches =
+        context.read<OngController>().matchingVolunteersForRequest(request);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetCtx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Voluntários compatíveis (${matches.length})',
+                style: Theme.of(sheetCtx).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              if (matches.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Text('Nenhum voluntário compatível cadastrado ainda.'),
+                )
+              else
+                for (final v in matches.take(5))
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.volunteer_activism_outlined),
+                    title: Text(v.userName ?? 'Voluntário'),
+                    subtitle: Text(
+                      '${v.skills.join(" • ")} • Raio ${v.radiusKm} km',
+                    ),
+                    trailing: v.userPhone != null && v.userPhone!.isNotEmpty
+                        ? OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(0, 48),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            onPressed: () async {
+                              final digits =
+                                  v.userPhone!.replaceAll(RegExp(r'\D'), '');
+                              final msg = Uri.encodeComponent(
+                                'Olá ${v.userName ?? ""}! Precisamos de apoio urgente para "${request.title}" em ${request.neighborhood}, ${request.city} (RedePatas).',
+                              );
+                              await launchUrl(
+                                Uri.parse('https://wa.me/55$digits?text=$msg'),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: const Text('WhatsApp'),
+                          )
+                        : null,
+                  ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReportDialog(BuildContext context, HelpRequestModel request) {
+    String reason = 'Pedido duplicado';
+    const reasons = [
+      'Pedido duplicado',
+      'Informações falsas ou spam',
+      'Animal já resgatado anteriormente',
+    ];
+    showDialog<void>(
+      context: context,
+      builder: (dlgCtx) => StatefulBuilder(
+        builder: (dlgCtx, setDlg) => AlertDialog(
+          title: const Text('Reportar pedido'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioGroup<String>(
+                groupValue: reason,
+                onChanged: (v) {
+                  if (v != null) setDlg(() => reason = v);
+                },
+                child: Column(
+                  children: [
+                    for (final r in reasons)
+                      RadioListTile<String>(
+                        value: r,
+                        title: Text(r),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dlgCtx).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await context.read<HelpRequestController>().updateRequest(
+                      request.copyWith(reportedReason: reason),
+                    );
+                if (dlgCtx.mounted) Navigator.of(dlgCtx).pop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Sinalização registrada para revisão da moderação/ONG.',
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Enviar'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -608,6 +779,20 @@ class RequestDetailScreen extends StatelessWidget {
                                 user?.name ?? 'Voluntário Comunitário',
                             commitment: finalCommitment,
                           );
+                      if (context.mounted) {
+                        await context.read<OngController>().addCaseUpdate(
+                              CaseUpdateModel(
+                                id: 'upd_${DateTime.now().millisecondsSinceEpoch}',
+                                requestId: request.id,
+                                authorId: user?.id ?? 'user_demo',
+                                authorName:
+                                    user?.name ?? 'Voluntário Comunitário',
+                                type: CaseUpdateType.assumido,
+                                message: finalCommitment,
+                                createdAt: DateTime.now(),
+                              ),
+                            );
+                      }
                       if (sheetContext.mounted) {
                         Navigator.of(sheetContext).pop();
                       }

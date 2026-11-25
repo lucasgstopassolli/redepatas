@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:redepatas/controllers/auth_controller.dart';
 import 'package:redepatas/controllers/ong_controller.dart';
 import 'package:redepatas/core/constants/rio_do_sul_bairros.dart';
 import 'package:redepatas/core/database/app_database.dart';
@@ -19,10 +20,15 @@ import 'package:redepatas/models/event_model.dart';
 import 'package:redepatas/models/help_request_model.dart';
 import 'package:redepatas/models/organization_model.dart';
 import 'package:redepatas/models/shelter_animal_model.dart';
+import 'package:redepatas/models/user_model.dart';
 import 'package:redepatas/repositories/i_help_request_repository.dart';
 import 'package:redepatas/repositories/i_ong_repository.dart';
 import 'package:redepatas/repositories/sqlite_help_repository.dart';
+import 'package:redepatas/ui/screens/campaigns_screen.dart';
+import 'package:redepatas/ui/screens/events_ongs_screen.dart';
 import 'package:redepatas/ui/screens/home_requests_screen.dart';
+import 'package:redepatas/ui/screens/role_selection_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -515,5 +521,101 @@ void main() {
 
     expect(find.text('Registrar animal'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  test('Unit (09): HelpRequestModel legado/v2 e detecção de duplicidade', () {
+    final legacyMap = {
+      'id': 'leg_1',
+      'title': 'Cão v1',
+      'species': 'dog',
+      'needs': 'water,food',
+      'urgency': 'high',
+      'city': 'Rio do Sul',
+      'neighborhood': 'Centro',
+      'referencePoint': 'Praça',
+      'description': 'Sem campos v2',
+      'status': 'open',
+      'authorId': 'u1',
+      'authorName': 'Ana',
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+    final req = HelpRequestModel.fromMap(legacyMap);
+    expect(req.latitude, isNull);
+    expect(req.animalCount, 1);
+
+    final v2 = req.copyWith(latitude: -27.21, longitude: -49.64, animalCount: 2);
+    final roundTrip = HelpRequestModel.fromMap(v2.toMap());
+    expect(roundTrip.latitude, -27.21);
+    expect(roundTrip.animalCount, 2);
+
+    final ong = OngController(InMemoryOngRepository());
+    final dup = ong.findPossibleDuplicate(
+      allRequests: [v2],
+      neighborhood: 'centro',
+      species: AnimalSpecies.dog,
+    );
+    expect(dup?.id, 'leg_1');
+  });
+
+  testWidgets('Widget (09): Copiar Pix, inscrição em evento e escolha de papel',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final auth = AuthController();
+    await auth.signInAsDemo(role: UserRole.volunteer);
+    final ong = OngController(InMemoryOngRepository());
+    await ong.loadAll();
+
+    // 1. Campanhas: botão Copiar Pix
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: auth),
+          ChangeNotifierProvider.value(value: ong),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const CampaignsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Copiar Pix'), findsOneWidget);
+
+    // 2. Eventos: inscrição reduz vagas
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: auth),
+          ChangeNotifierProvider.value(value: ong),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const EventsOngsScreen(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('0/30 inscritos'), findsOneWidget);
+    await tester.tap(find.text('Inscrever-se').first);
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1/30 inscritos'), findsOneWidget);
+
+    // 3. Seleção de papel
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: auth,
+        child: MaterialApp(
+          theme: AppTheme.lightTheme,
+          home: const RoleSelectionScreen(popOnSelect: false),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ONG / Protetor'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Confirmar perfil'), 200);
+    await tester.tap(find.text('Confirmar perfil'));
+    await tester.pumpAndSettle();
+    expect(auth.currentUser?.role, UserRole.organization);
   });
 }

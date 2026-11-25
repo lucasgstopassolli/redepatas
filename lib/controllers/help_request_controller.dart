@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/help_request_model.dart';
 import '../repositories/i_help_request_repository.dart';
@@ -42,9 +43,12 @@ enum HomeFilterCategory {
 }
 
 class HelpRequestController extends ChangeNotifier {
+  static const String _followedPrefKey = 'redepatas_followed_requests';
+
   final IHelpRequestRepository _repository;
 
   List<HelpRequestModel> _requests = [];
+  Set<String> _followedIds = {};
   bool _isLoading = false;
   String _searchQuery = '';
   HomeFilterCategory _selectedCategory = HomeFilterCategory.all;
@@ -52,7 +56,33 @@ class HelpRequestController extends ChangeNotifier {
   bool _showCompletedInHome = false;
 
   HelpRequestController(this._repository) {
+    _loadFollowedIds();
     loadRequests();
+  }
+
+  Future<void> _loadFollowedIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_followedPrefKey);
+    if (saved != null) {
+      _followedIds = saved.toSet();
+      notifyListeners();
+    }
+  }
+
+  bool isFollowing(String requestId) => _followedIds.contains(requestId);
+
+  List<HelpRequestModel> get followedRequests =>
+      _requests.where((r) => _followedIds.contains(r.id)).toList();
+
+  Future<void> toggleFollow(String requestId) async {
+    if (_followedIds.contains(requestId)) {
+      _followedIds.remove(requestId);
+    } else {
+      _followedIds.add(requestId);
+    }
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_followedPrefKey, _followedIds.toList());
   }
 
   List<HelpRequestModel> get allRequests => _requests;
@@ -126,7 +156,7 @@ class HelpRequestController extends ChangeNotifier {
       return true;
     }).toList();
 
-    // Ordena priorizando pedidos Abertos e Críticos mais recentes
+    // Prioridade automática (§10): ativos primeiro, maior urgência, e críticos/abertos há mais tempo sobem
     filtered.sort((a, b) {
       if (a.status != b.status) {
         if (a.status == RequestStatus.completed) return 1;
@@ -134,6 +164,9 @@ class HelpRequestController extends ChangeNotifier {
       }
       if (a.urgency != b.urgency) {
         return b.urgency.index.compareTo(a.urgency.index);
+      }
+      if (a.status == RequestStatus.open && b.status == RequestStatus.open) {
+        return a.createdAt.compareTo(b.createdAt);
       }
       return b.createdAt.compareTo(a.createdAt);
     });

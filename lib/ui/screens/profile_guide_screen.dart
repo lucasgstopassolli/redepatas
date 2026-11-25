@@ -500,6 +500,8 @@ class ProfileGuideScreen extends StatelessWidget {
                   ),
                   child: SectionHeader(title: 'Preferências e Dados'),
                 ),
+                const _NotificationPrefsSection(),
+                const Divider(),
                 ListTile(
                   leading: const Icon(Icons.notifications_active_outlined),
                   title: const Text('Testar lembrete local'),
@@ -867,6 +869,71 @@ class _EmergencyContactCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _NotificationPrefsSection extends StatefulWidget {
+  const _NotificationPrefsSection();
+
+  @override
+  State<_NotificationPrefsSection> createState() =>
+      _NotificationPrefsSectionState();
+}
+
+class _NotificationPrefsSectionState extends State<_NotificationPrefsSection> {
+  bool _events = true;
+  bool _stale = true;
+  bool _critical = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await NotificationService.instance.loadPreferences();
+    if (!mounted) return;
+    setState(() {
+      _events = prefs[NotificationService.prefEventsKey] ?? true;
+      _stale = prefs[NotificationService.prefStaleKey] ?? true;
+      _critical = prefs[NotificationService.prefCriticalKey] ?? true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SwitchListTile(
+          title: const Text('Lembrete de eventos inscritos'),
+          value: _events,
+          onChanged: (v) {
+            setState(() => _events = v);
+            NotificationService.instance
+                .setPreference(NotificationService.prefEventsKey, v);
+          },
+        ),
+        SwitchListTile(
+          title: const Text('Avisar pedidos sem atualização há 24h'),
+          value: _stale,
+          onChanged: (v) {
+            setState(() => _stale = v);
+            NotificationService.instance
+                .setPreference(NotificationService.prefStaleKey, v);
+          },
+        ),
+        SwitchListTile(
+          title: const Text('Alertas de pedidos críticos na cidade'),
+          value: _critical,
+          onChanged: (v) {
+            setState(() => _critical = v);
+            NotificationService.instance
+                .setPreference(NotificationService.prefCriticalKey, v);
+          },
+        ),
+      ],
     );
   }
 }

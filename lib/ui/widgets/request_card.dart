@@ -109,6 +109,24 @@ class RequestCard extends StatelessWidget {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           StatusBadge(status: request.status, compact: true),
+                          if (request.status == RequestStatus.open) ...[
+                            Builder(
+                              builder: (_) {
+                                final hours = DateTime.now()
+                                    .difference(request.createdAt)
+                                    .inHours;
+                                if (hours < 1) return const SizedBox.shrink();
+                                return Text(
+                                  'Sem atendimento há ${hours}h',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: secondaryTextColor,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                           if (request.status == RequestStatus.inProgress &&
                               request.helperName != null)
                             Text(

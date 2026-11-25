@@ -14,6 +14,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../models/case_update_model.dart';
 import '../../models/help_request_model.dart';
 import '../widgets/section_header.dart';
+import 'request_detail_screen.dart';
 import 'requests_map_screen.dart';
 
 class NewRequestScreen extends StatefulWidget {
@@ -143,6 +144,50 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                 const SizedBox(height: AppSpacing.md),
               ],
               const SizedBox(height: AppSpacing.xs),
+
+              // Aviso não-bloqueante de possível pedido duplicado (§9)
+              Builder(
+                builder: (context) {
+                  final currentNeighborhood = _isRioDoSul
+                      ? _selectedRioDoSulBairro
+                      : _customNeighborhoodController.text.trim();
+                  if (currentNeighborhood.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  final dup = context.read<OngController>().findPossibleDuplicate(
+                        allRequests:
+                            context.watch<HelpRequestController>().allRequests,
+                        neighborhood: currentNeighborhood,
+                        species: _selectedSpecies,
+                      );
+                  if (dup == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: Card(
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.info_outline_rounded,
+                          color: theme.colorScheme.primary,
+                        ),
+                        title: Text(
+                          'Pode já existir um pedido parecido: "${dup.title}"',
+                          style: theme.textTheme.titleSmall,
+                        ),
+                        subtitle: Text(
+                          '${dup.neighborhood} • ${dup.species.label}. Toque para conferir.',
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                                RequestDetailScreen(requestId: dup.id),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
 
               // 1. Espécie e Identificação
               const SectionHeader(title: 'Animal'),

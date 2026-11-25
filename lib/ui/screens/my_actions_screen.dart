@@ -23,24 +23,20 @@ class MyActionsScreen extends StatelessWidget {
 
     final helpingList = controller.myHelpingRequests(userId);
     final createdList = controller.myCreatedRequests(userId);
+    final followingList = controller.followedRequests;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Minhas Ações',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
+          title: const Text('Minhas Ações'),
           bottom: TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             labelColor: theme.colorScheme.primary,
             unselectedLabelColor: secondaryTextColor,
             indicatorColor: theme.colorScheme.primary,
             indicatorWeight: 2,
-            indicatorSize: TabBarIndicatorSize.tab,
             labelStyle: const TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -50,12 +46,9 @@ class MyActionsScreen extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
             tabs: [
-              Tab(
-                text: 'Estou ajudando (${helpingList.length})',
-              ),
-              Tab(
-                text: 'Criados por mim (${createdList.length})',
-              ),
+              Tab(text: 'Estou ajudando (${helpingList.length})'),
+              Tab(text: 'Criados por mim (${createdList.length})'),
+              Tab(text: 'Seguindo (${followingList.length})'),
             ],
           ),
         ),
@@ -74,6 +67,13 @@ class MyActionsScreen extends StatelessWidget {
               emptyTitle: 'Nenhum pedido publicado',
               emptySubtitle:
                   'Use a aba "Novo" sempre que avistar um animal que necessite de alimento, água ou abrigo.',
+            ),
+            _RequestsSubTabList(
+              requests: followingList,
+              emptyIcon: Icons.bookmark_border_rounded,
+              emptyTitle: 'Nenhum pedido seguido',
+              emptySubtitle:
+                  'Toque no ícone de salvar nos detalhes de um pedido para acompanhar atualizações por aqui.',
             ),
           ],
         ),
